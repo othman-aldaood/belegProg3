@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Mockito5">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/artifacts/Mockito5/byte-buddy-1.18.7.jar!/" />
+      <root url="jar://$PROJECT_DIR$/artifacts/Mockito5/byte-buddy-agent-1.18.7.jar!/" />
+      <root url="jar://$PROJECT_DIR$/artifacts/Mockito5/mockito-core-5.22.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/artifacts/Mockito5/mockito-junit-jupiter-5.22.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/artifacts/Mockito5/objenesis-3.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
