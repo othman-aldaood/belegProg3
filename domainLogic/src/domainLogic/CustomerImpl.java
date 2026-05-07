@@ -40,12 +40,4 @@ public class CustomerImpl implements Customer {
         return Objects.hash(name);
     }
 
-    public boolean removeCustomer(Customer customer) {
-
-        if (this.name.contains(customer)) {
-            this.name.remove(customer);
-            return true;
-        }
-        return false;
-    }
 }

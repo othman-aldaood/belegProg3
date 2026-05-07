@@ -16,34 +16,34 @@ Flüchtige Quellen, wie LLMs, sind nachvollziehbar zu dokumentieren.
 0 Punkte wenn die grundsätzlichen Anforderungen nicht erfüllt sind. 1 Punkt für die Erfüllung der Basisanforderung und darauf aufbauend je ein Punkt für die nummerierten Anforderungen.
 
 ### grundsätzliche Anforderungen
-- [ ] Quellen angegeben
-- [ ] Abgabe als zip-Archiv mit dem Projekt im root
-- [ ] IntelliJ-Projekt (kein Gradle, Maven o.ä.)
-- [ ] keine weiteren Bibliotheken außer JUnit5, Mockito und JavaFX (und deren Abhängigkeiten)
-- [ ] keine Umlaute, Sonderzeichen, etc. in Datei- und Pfadnamen
-- [ ] kompilierbar
-- [ ] Trennung zwischen Test- und Produktiv-Code
-- [ ] geforderte main-Methoden nur im default package des Moduls belegProg3, nicht in den Submodulen
-- [ ] keine vorgetäuschte Funktionalität (inkl. leere Tests)
-- [ ] ausführbar
+- [X] Quellen angegeben
+- [x] Abgabe als zip-Archiv mit dem Projekt im root
+- [x] IntelliJ-Projekt (kein Gradle, Maven o.ä.)
+- [x] keine weiteren Bibliotheken außer JUnit5, Mockito und JavaFX (und deren Abhängigkeiten)
+- [x] keine Umlaute, Sonderzeichen, etc. in Datei- und Pfadnamen
+- [x] kompilierbar
+- [x] Trennung zwischen Test- und Produktiv-Code
+- [x] geforderte main-Methoden nur im default package des Moduls belegProg3, nicht in den Submodulen
+- [x] keine vorgetäuschte Funktionalität (inkl. leere Tests)
+- [x] ausführbar
 
 ### Basisanforderung
-- [ ] CRUD für einen Typ
-- [ ] mindestens ein Test
+- [x] CRUD für einen Typ
+- [x] mindestens ein Test
 
 ### 1 Ausbau GL
-- [ ] Einfügen der Frachtstücke vollständig implementiert (siehe Anforderungsdokument)
-- [ ] Unterstützung von mindestens zwei Frachttypen
+- [x] Einfügen der Frachtstücke vollständig implementiert (siehe Anforderungsdokument)
+- [x] Unterstützung von mindestens zwei Frachttypen
 
 ### 2 Testabdeckung
 abhängig von 1
-- [ ] Einfügen der Frachtstücke vollständig getestet (mindestens Pfadabdeckung)
+- [x] Einfügen der Frachtstücke vollständig getestet (mindestens Pfadabdeckung)
 
 ### 3 Stellvertretertests
 abhängig von 1
-- [ ] mindestens zwei Tests mit Mockito
+- [x] mindestens zwei Tests mit Mockito
 
 ### 4 vollständige GL
 abhängig von 1
-- [ ] GL erfüllt alle Anforderungen lt. Anforderungsdokument
+- [x] GL erfüllt alle Anforderungen lt. Anforderungsdokument
 

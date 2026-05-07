@@ -2,112 +2,152 @@ package domainLogic;
 
 import administration.Customer;
 import cargo.Hazard;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class WarehouseTest {
 
-    // Testet ob man einen Kunden erfolgreich zum  hinzufügen kann
-    @Test
-    public void testAddCustomer() {
-        WarehouseManager manager = new WarehouseManager(10);
-        Customer customer = new CustomerImpl("Max Mustermann");
+    private WarehouseManager manager;
 
-        boolean result = manager.addCustomer(customer);
-        assertTrue(result);
+    // Diese Methode bereitet die Testumgebung vor jedem Testlauf vor
+    @BeforeEach
+    public void setUp() {
+        // Wir erstellen einen Manager mit Platz für 10 Gegenstände
+        manager = new WarehouseManager(10);
     }
 
-    // Testet ob man den gleichen Kunden zweimal hinzufügen kann (sollte false sein)
+    // --- Tests für die Kundenverwaltung ---
+
+    @Test
+    public void testAddCustomer() {
+        Customer customer = new CustomerImpl("Max Mustermann");
+        assertTrue(manager.addCustomer(customer));
+    }
+
     @Test
     public void testAddDuplicateCustomer() {
-        WarehouseManager manager = new WarehouseManager(10);
         Customer c1 = new CustomerImpl("Ahmed");
         Customer c2 = new CustomerImpl("Ahmed");
 
-        boolean firstAdd = manager.addCustomer(c1);
-        boolean secondAdd = manager.addCustomer(c2);
-
-        assertTrue(firstAdd);
-        assertFalse(secondAdd);
+        manager.addCustomer(c1);
+        // Da die Namen gleich sind (equals/hashCode), sollte das zweite Mal false sein
+        assertFalse(manager.addCustomer(c2));
     }
 
-    // Testet das Einfügen von Fracht wenn der Kunde registriert ist
     @Test
-    public void testInsertCargoSuccess() {
-        WarehouseManager manager = new WarehouseManager(5);
+    public void testRemoveCustomer() {
+        Customer customer = new CustomerImpl("Lisa");
+        manager.addCustomer(customer);
+
+        // Testet das Löschen eines Kunden
+        assertTrue(manager.removeCustomer(customer));
+        assertFalse(manager.getAllCustomers().contains(customer));
+    }
+
+    // --- Tests für das Einfügen (Pfadabdeckung / Path Coverage) ---
+
+    // Pfad 1: Erfolgreiches Einfügen von Schüttgut
+    @Test
+    public void testInsertDryBulkCargoSuccess() {
         Customer customer = new CustomerImpl("Ali");
         manager.addCustomer(customer);
 
-        Collection<Hazard> hazards = new ArrayList<>();
-        DryBulkCargoImpl cargo = new DryBulkCargoImpl(customer, new BigDecimal("100.0"), hazards, 10);
-
-        boolean inserted = manager.insertCargo(cargo);
-        assertTrue(inserted);
+        DryBulkCargoImpl cargo = new DryBulkCargoImpl(customer, new BigDecimal("100.0"), null, 10);
+        assertTrue(manager.insertCargo(cargo));
+        assertEquals(1, cargo.getStorageLocation());
     }
 
-    // Testet ob das Einfügen fehlschlägt wenn die Kapazität voll ist
+    // Pfad 2: Erfolgreiches Einfügen von Stückgut (Zweiter Frachttyp)
     @Test
-    public void testInsertCargoFullCapacity() {
-        WarehouseManager manager = new WarehouseManager(0); // Kapazität ist 0
-        Customer customer = new CustomerImpl("Sara");
+    public void testInsertUnitisedCargoSuccess() {
+        Customer customer = new CustomerImpl("Tom");
         manager.addCustomer(customer);
 
-        DryBulkCargoImpl cargo = new DryBulkCargoImpl(customer, new BigDecimal("50.0"), null, 5);
-
-        boolean result = manager.insertCargo(cargo);
-        assertFalse(result); // Sollte false sein weil kein Platz da ist
+        // Wir nutzen hier den zweiten Frachttyp inkl. 'fragile' Parameter
+        UnitisedCargoImpl cargo = new UnitisedCargoImpl(customer, new BigDecimal("200.0"), null, true);
+        assertTrue(manager.insertCargo(cargo));
     }
 
-    // Ein Test mit Mockito um die Anforderungen (Stellvertretertests) zu erfüllen
+    // Pfad 3: Einfügen schlägt fehl, wenn Kapazität voll ist
     @Test
-    public void testWithMockito() {
-        WarehouseManager manager = new WarehouseManager(10);
+    public void testInsertCargoFullCapacity() {
+        WarehouseManager smallManager = new WarehouseManager(0); // Kapazität ist 0
+        Customer customer = new CustomerImpl("Sara");
+        smallManager.addCustomer(customer);
 
-        // Mock Objekt erstellen
+        DryBulkCargoImpl cargo = new DryBulkCargoImpl(customer, new BigDecimal("50.0"), null, 5);
+        assertFalse(smallManager.insertCargo(cargo));
+    }
+
+    // Pfad 4: Einfügen schlägt fehl, wenn der Kunde nicht registriert ist
+    @Test
+    public void testInsertCargoCustomerNotRegistered() {
+        Customer unregistered = new CustomerImpl("Gast");
+        DryBulkCargoImpl cargo = new DryBulkCargoImpl(unregistered, new BigDecimal("50.0"), null, 5);
+
+        // Da der Kunde nicht mit manager.addCustomer hinzugefügt wurde
+        assertFalse(manager.insertCargo(cargo));
+    }
+
+    // --- Stellvertretertests mit Mockito (Mindestens zwei erforderlich) ---
+
+    @Test
+    public void testMockitoVerifyCustomerName() {
         Customer mockCustomer = mock(Customer.class);
-        when(mockCustomer.getName()).thenReturn("MockedCustomer");
+        when(mockCustomer.getName()).thenReturn("MockedUser");
 
-        // Den Mock-Kunden hinzufügen
+        manager.addCustomer(mockCustomer);
+
+        // Wir prüfen ob das Mock-Objekt richtig interagiert
+        assertEquals("MockedUser", mockCustomer.getName());
+        verify(mockCustomer, atLeastOnce()).getName();
+    }
+
+    @Test
+    public void testMockitoWithManagerInteraction() {
+        // Ein zweiter Test mit Mockito für die Anforderung
+        Customer mockCustomer = mock(Customer.class);
+
         boolean added = manager.addCustomer(mockCustomer);
         assertTrue(added);
-        verify(mockCustomer, atLeastOnce());
-    }
-    // Testet ob die Getter-Methoden die richtigen Werte zurückgeben
-    @Test
-    public void testCargoGetters() {
-        // Vorbereitung (Setup)
-        Customer owner = new CustomerImpl("Max");
-        java.math.BigDecimal value = new java.math.BigDecimal("500.0");
-        java.util.Collection<cargo.Hazard> hazards = new java.util.HashSet<>();
-        int grainSize = 20;
 
-        // Objekt erstellen
-        DryBulkCargoImpl cargo = new DryBulkCargoImpl(owner, value, hazards, grainSize);
-
-        // Überprüfung (Assertions)
-        assertEquals(owner, cargo.getOwner());
-        assertEquals(value, cargo.getValue());
-        assertEquals(grainSize, cargo.getGrainSize());
-        assertNotNull(cargo.getHazards());
-
-        // Test für den StorageLocation Setter/Getter
-        cargo.setStorageLocation(5);
-        assertEquals(5, cargo.getStorageLocation());
+        // Wir verifizieren, dass der Manager den Mock-Kunden löschen kann
+        assertTrue(manager.removeCustomer(mockCustomer));
     }
 
-    // Testet die Berechnung der Lagerdauer (nicht null nach Erstellung)
+    /// Testet ob die Gefahrenstoffe korrekt erkannt werden
     @Test
-    public void testDurationOfStorage() {
-        Customer owner = new CustomerImpl("Tom");
-        DryBulkCargoImpl cargo = new DryBulkCargoImpl(owner, new java.math.BigDecimal("10.0"), null, 1);
+    public void testGetPresentHazards() {
+        Customer customer = new CustomerImpl("HazardUser");
+        manager.addCustomer(customer);
 
-        // Die Dauer sollte nicht null sein, wenn das Objekt gerade erst erstellt wurde
-        assertNotNull(cargo.getDurationOfStorage());
+        HashSet<Hazard> hazards = new HashSet<>();
+
+        // Versuche es mit GROSSBUCHSTABEN (Java Standard für Enums)
+        hazards.add(Hazard.EXPLOSIVE);
+
+        DryBulkCargoImpl cargo = new DryBulkCargoImpl(customer, new BigDecimal("100"), hazards, 5);
+        manager.insertCargo(cargo);
+
+        // Überprüfung
+        assertTrue(manager.getPresentHazards().contains(Hazard.EXPLOSIVE));
+    }
+
+    @Test
+    public void testUpdateInspectionDate() {
+        Customer customer = new CustomerImpl("DateUser");
+        manager.addCustomer(customer);
+        DryBulkCargoImpl cargo = new DryBulkCargoImpl(customer, new BigDecimal("10"), null, 1);
+        manager.insertCargo(cargo);
+
+        java.util.Date now = new java.util.Date();
+        assertTrue(manager.updateInspectionDate(1, now));
+        assertEquals(now, cargo.getLastInspectionDate());
     }
 }

@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 
+// Implementierung für Schüttgut (Dry Bulk Cargo)
 public class DryBulkCargoImpl implements DryBulkCargo {
 
     private final Customer owner;
@@ -19,16 +20,18 @@ public class DryBulkCargoImpl implements DryBulkCargo {
     private final Collection<Hazard> hazards;
     private final int grainSize;
 
+    // Konstruktor für ein neues Schüttgut-Objekt
     public DryBulkCargoImpl(Customer owner, BigDecimal value, Collection<Hazard> hazards, int grainSize) {
         this.owner = owner;
         this.value = value;
         this.grainSize = grainSize;
+        // Sicherstellen, dass die Liste der Gefahrenstoffe nicht null ist
         if (hazards != null) {
             this.hazards = new HashSet<>(hazards);
         } else {
             this.hazards = new HashSet<>();
         }
-        this.insertionDate = new Date();
+        this.insertionDate = new Date(); // Speichert den Zeitpunkt der Einlagerung
     }
 
     @Override
@@ -36,6 +39,7 @@ public class DryBulkCargoImpl implements DryBulkCargo {
         return owner;
     }
 
+    // Berechnet die aktuelle Lagerdauer
     @Override
     public java.time.Duration getDurationOfStorage() {
         if (insertionDate == null) return null;
