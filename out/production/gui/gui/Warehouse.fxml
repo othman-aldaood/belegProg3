@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="15" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.WarehouseController">
+    <padding>
+        <Insets top="15" right="15" bottom="15" left="15"/>
+    </padding>
+
+    <HBox spacing="10" VBox.vgrow="ALWAYS">
+        <TableView fx:id="kundenTabelle" HBox.hgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="kundenNameSpalte" text="Kunde" prefWidth="150"/>
+                <TableColumn fx:id="frachtAnzahlSpalte" text="Anzahl Frachtstuecke" prefWidth="150"/>
+            </columns>
+        </TableView>
+
+        <TableView fx:id="frachtTabelle" HBox.hgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="lagerplatzSpalte" text="Lagerplatz" prefWidth="100"/>
+                <TableColumn fx:id="frachtKundeSpalte" text="Kunde" prefWidth="150"/>
+                <TableColumn fx:id="inspektionsDatumSpalte" text="Inspektionsdatum" prefWidth="150"/>
+                <TableColumn fx:id="einlagerungsDauerSpalte" text="Einlagerungsdauer" prefWidth="150"/>
+            </columns>
+        </TableView>
+    </HBox>
+
+    <VBox spacing="10" style="-fx-border-color: lightgray; -fx-border-width: 1; -fx-padding: 10;">
+        <Label text="Verwaltungsaktionen" style="-fx-font-weight: bold;"/>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <TextField fx:id="kundenNameInput" promptText="Kundenname eingeben" />
+            <Button text="Kunde anlegen" onAction="#handleKundeAnlegen" />
+        </HBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <TextField fx:id="frachtKundeInput" promptText="Kunde fuer Fracht" />
+            <Button text="Fracht einfuegen (Nebenlaeufig)" onAction="#handleFrachtEinfuegen" style="-fx-base: lightgreen;" />
+        </HBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <TextField fx:id="platzInput" promptText="Lagerplatz ID" />
+            <Button text="Fracht loeschen" onAction="#handleFrachtLoeschen" />
+            <Button text="Inspektion durchfuehren" onAction="#handleInspektionSetzen" />
+        </HBox>
+    </VBox>
+</VBox>
