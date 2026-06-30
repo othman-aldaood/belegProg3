@@ -7,10 +7,9 @@
       <sourceFolder url="file://$MODULE_DIR$/contracts" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tst" isTestSource="true" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="liberica-full-1.8" jdkType="JavaSDK" />
+    <orderEntry type="library" scope="TEST" name="JUnit5" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="contract" />
-    <orderEntry type="library" scope="TEST" name="Mockito5" level="project" />
-    <orderEntry type="library" scope="TEST" name="JUnit5" level="project" />
   </component>
 </module>

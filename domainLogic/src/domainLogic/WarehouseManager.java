@@ -297,4 +297,63 @@ public class WarehouseManager implements CargoCommandListener {
     public synchronized int getCurrentSize() {
         return this.cargos.size();
     }
+    // --- METHODEN FÜR DIE GUI (PROTOTYP 4) ---
+
+    /**
+     * Gibt die Anzahl der Frachtstücke für einen bestimmten Kunden zurück.
+     */
+    public synchronized int getCargoCountForCustomer(Customer c) {
+        return (int) this.cargoOwners.values().stream().filter(owner -> owner.equals(c)).count();
+    }
+
+    /**
+     * Tauscht die Lagerplätze von zwei Frachtstücken (Für Drag & Drop).
+     */
+    public synchronized boolean swapLagerplatz(int loc1, int loc2) {
+        if (!this.cargos.containsKey(loc1) || !this.cargos.containsKey(loc2)) return false;
+
+        // Frachtstücke tauschen
+        Cargo c1 = this.cargos.get(loc1);
+        Cargo c2 = this.cargos.get(loc2);
+        this.cargos.put(loc1, c2);
+        this.cargos.put(loc2, c1);
+
+        // Besitzer tauschen
+        Customer owner1 = this.cargoOwners.get(loc1);
+        Customer owner2 = this.cargoOwners.get(loc2);
+        this.cargoOwners.put(loc1, owner2);
+        this.cargoOwners.put(loc2, owner1);
+
+        // Typen tauschen
+        String type1 = this.cargoTypes.get(loc1);
+        String type2 = this.cargoTypes.get(loc2);
+        this.cargoTypes.put(loc1, type2);
+        this.cargoTypes.put(loc2, type1);
+
+        // Einfügedaten tauschen
+        Date insert1 = this.insertionDates.get(loc1);
+        Date insert2 = this.insertionDates.get(loc2);
+        this.insertionDates.put(loc1, insert2);
+        this.insertionDates.put(loc2, insert1);
+
+        // Inspektions-Updater tauschen
+        Runnable updater1 = this.inspectionUpdaters.get(loc1);
+        Runnable updater2 = this.inspectionUpdaters.get(loc2);
+        this.inspectionUpdaters.put(loc1, updater2);
+        this.inspectionUpdaters.put(loc2, updater1);
+
+        // Inspektionsdaten tauschen
+        Date inspect1 = this.inspectionDates.get(loc1);
+        Date inspect2 = this.inspectionDates.get(loc2);
+        this.inspectionDates.put(loc1, inspect2);
+        this.inspectionDates.put(loc2, inspect1);
+
+        return true;
+    }
+
+    // Getter für die GUI, um die Tabellen zu füllen
+    public synchronized Map<Integer, Cargo> getCargosMap() { return new HashMap<>(this.cargos); }
+    public synchronized Map<Integer, Customer> getCargoOwnersMap() { return new HashMap<>(this.cargoOwners); }
+    public synchronized Map<Integer, Date> getInspectionDatesMap() { return new HashMap<>(this.inspectionDates); }
+    public synchronized Map<Integer, Date> getInsertionDatesMap() { return new HashMap<>(this.insertionDates); }
 }
