@@ -4,6 +4,7 @@ import administration.Customer;
 import cargo.UnitisedCargo;
 import cargo.Hazard;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
@@ -11,88 +12,85 @@ import java.util.HashSet;
 
 /**
  * Implementierung für Stückgut (Unitised Cargo).
- * Erfüllt die Anforderungen des Contract-Interfaces und erweitert
- * die Funktionalität um Inspektionsdaten, um Kompilierungsfehler zu beheben.
+ * Erfüllt die JavaBeans-Konvention für JBP.
  */
-public class UnitisedCargoImpl implements UnitisedCargo {
+public class UnitisedCargoImpl implements UnitisedCargo, Serializable {
 
-    private final Customer owner;
+    private static final long serialVersionUID = 1L;
+
+    private Customer owner;
     private int storageLocation;
-    private final Date insertionDate;
-    private final BigDecimal value;
-    private final Collection<Hazard> hazards;
-    private final boolean fragile;
-    private Date lastInspectionDate; // Behebt den Kompilierungsfehler im WarehouseManager
+    private Date insertionDate;
+    private BigDecimal value;
+    private Collection<Hazard> hazards;
+    private boolean fragile;
+    private Date lastInspectionDate;
 
-    /**
-     * Konstruktor für ein neues Stückgut-Objekt.
-     * @param owner Der Besitzer des Frachtstücks.
-     * @param value Der finanzielle Wert des Frachtstücks.
-     * @param hazards Die Liste der zugeordneten Gefahrenstoffe.
-     * @param fragile Gibt an, ob das Frachtstück zerbrechlich ist.
-     */
+    public UnitisedCargoImpl() {
+        this.hazards = new HashSet<>();
+        this.insertionDate = new Date();
+    }
+
     public UnitisedCargoImpl(Customer owner, BigDecimal value, Collection<Hazard> hazards, boolean fragile) {
+        this();
         this.owner = owner;
         this.value = value;
         this.fragile = fragile;
         if (hazards != null) {
-            this.hazards = new HashSet<>(hazards);
-        } else {
-            this.hazards = new HashSet<>();
+            this.hazards.addAll(hazards);
         }
-        this.insertionDate = new Date(); // Setzt das Einfügedatum bei der Erstellung
     }
 
     @Override
-    public boolean isFragile() {
-        return this.fragile;
-    }
+    public boolean isFragile() { return this.fragile; }
+
+    // ohne @Override (da nicht im Interface)
+    public void setFragile(boolean fragile) { this.fragile = fragile; }
 
     @Override
-    public Customer getOwner() {
-        return this.owner;
-    }
+    public Customer getOwner() { return this.owner; }
 
-    /**
-     * Berechnet die aktuelle Lagerdauer basierend auf dem Einfügedatum.
-     * @return Die Dauer als java.time.Duration.
-     */
+    // ohne @Override
+    public void setOwner(Customer owner) { this.owner = owner; }
+
+    public Date getInsertionDate() { return this.insertionDate; }
+
+    public void setInsertionDate(Date insertionDate) { this.insertionDate = insertionDate; }
+
     @Override
     public java.time.Duration getDurationOfStorage() {
+        if (this.insertionDate == null) return java.time.Duration.ZERO;
         long diff = new Date().getTime() - this.insertionDate.getTime();
         return java.time.Duration.ofMillis(diff);
     }
 
     @Override
-    public Date getLastInspectionDate() {
-        return this.lastInspectionDate;
-    }
+    public Date getLastInspectionDate() { return this.lastInspectionDate; }
 
-    /**
-     * Setzt das Datum der letzten Überprüfung.
-     * @param lastInspectionDate Das neue Inspektionsdatum.
-     */
-    public void setLastInspectionDate(Date lastInspectionDate) {
-        this.lastInspectionDate = lastInspectionDate;
-    }
+    // ohne @Override
+    public void setLastInspectionDate(Date lastInspectionDate) { this.lastInspectionDate = lastInspectionDate; }
 
     @Override
-    public int getStorageLocation() {
-        return this.storageLocation;
-    }
+    public int getStorageLocation() { return this.storageLocation; }
+
+    // ohne @Override
+    public void setStorageLocation(int location) { this.storageLocation = location; }
 
     @Override
-    public void setStorageLocation(int location) {
-        this.storageLocation = location;
-    }
+    public BigDecimal getValue() { return this.value; }
 
-    @Override
-    public BigDecimal getValue() {
-        return this.value;
-    }
+    public void setValue(BigDecimal value) { this.value = value; }
 
     @Override
     public Collection<Hazard> getHazards() {
-        return this.hazards;
+        return new HashSet<>(this.hazards);
+    }
+
+    public void setHazards(Collection<Hazard> hazards) {
+        if (hazards != null) {
+            this.hazards = new HashSet<>(hazards);
+        } else {
+            this.hazards = new HashSet<>();
+        }
     }
 }

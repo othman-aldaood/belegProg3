@@ -1,5 +1,9 @@
 import cli.ConsoleClient;
 import domainLogic.WarehouseManager;
+import events.PersistenceCommandListener;
+import io.JBPPersistence;
+import io.JOSPersistence;
+import io.PersistenceStrategy;
 
 import java.util.Scanner;
 
@@ -30,6 +34,36 @@ public class Main {
         gl.setFeedbackListener(cli);
         gl.addCapacityObserver(cli);
 
+        // 5. Persistenz einhängen (Prototyp 5)
+        // Die UI kennt nur das Event-Interface, die Technologie-Auswahl passiert hier im setup.
+        // Die Dateinamen kennt der DAL selbst (Folie 63, Java I/O).
+        final WarehouseManager[] currentManager = {gl};
+        cli.setPersistenceListener(new PersistenceCommandListener() {
+            @Override
+            public void onSave(String technology) {
+                try {
+                    createStrategy(technology).save(currentManager[0]);
+                    System.out.println("Erfolg: Zustand gespeichert (" + technology + ").");
+                } catch (Exception e) {
+                    System.out.println("Fehler beim Speichern: " + e.getMessage());
+                }
+            }
+
+            @Override
+            public void onLoad(String technology) {
+                try {
+                    WarehouseManager loaded = createStrategy(technology).load();
+                    currentManager[0] = loaded;
+                    // Die Beobachter gehören nicht zum Zustand der GL und müssen laut
+                    // Anforderung nach dem Laden nicht wieder eingehangen werden.
+                    cli.setCommandListener(loaded);
+                    System.out.println("Erfolg: Zustand geladen (" + technology + ").");
+                } catch (Exception e) {
+                    System.out.println("Fehler beim Laden: " + e.getMessage());
+                }
+            }
+        });
+
         // 5. CLI starten
         System.out.println("=========================================================");
         System.out.println("       Willkommen in der Frachtverwaltung!               ");
@@ -39,11 +73,22 @@ public class Main {
         System.out.println("  :r  -> Anzeigemodus (customers, cargos, hazards lesen)");
         System.out.println("  :u  -> Änderungsmodus (Inspektionsdatum aktualisieren)");
         System.out.println("  :d  -> Löschmodus (Kunde oder Frachtstück entfernen)");
+        System.out.println("  :p  -> Persistenzmodus (save/load [JOS|JBP])");
         System.out.println("  :x  -> Anwendung beenden");
         System.out.println("---------------------------------------------------------");
         System.out.println("Bitte einen Modus eingeben (z.B. ':c' gefolgt von Enter):");
         Scanner scanner = new Scanner(System.in);
         cli.start(scanner);
         scanner.close();
+    }
+
+    /**
+     * Liefert die Persistenz-Strategie zur angegebenen Technologie.
+     */
+    private static PersistenceStrategy createStrategy(String technology) {
+        if (technology.equals("JBP")) {
+            return new JBPPersistence();
+        }
+        return new JOSPersistence();
     }
 }
