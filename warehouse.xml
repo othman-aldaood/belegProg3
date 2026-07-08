@@ -1,89 +1,176 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <java version="1.8.0_492" class="java.beans.XMLDecoder">
  <object class="domainLogic.WarehouseManager" id="WarehouseManager0">
-  <void property="capacity">
-   <int>10</int>
-  </void>
-  <void property="cargoOwners">
+  <void id="HashMap0" property="cargoOwners">
    <void method="put">
-    <int>1</int>
+    <int>2</int>
     <object class="domainLogic.CustomerImpl" id="CustomerImpl0">
      <void property="name">
       <string>Alice</string>
      </void>
     </object>
    </void>
-  </void>
-  <void property="cargoTypes">
    <void method="put">
-    <int>1</int>
-    <string>DryBulkCargo</string>
+    <int>3</int>
+    <object class="domainLogic.CustomerImpl" id="CustomerImpl1">
+     <void property="name">
+      <string>Max</string>
+     </void>
+    </object>
+   </void>
+   <void method="put">
+    <int>4</int>
+    <object class="domainLogic.CustomerImpl" id="CustomerImpl2">
+     <void property="name">
+      <string>Omar</string>
+     </void>
+    </object>
    </void>
   </void>
-  <void property="cargos">
+  <void property="cargoOwners">
+   <object idref="HashMap0"/>
+  </void>
+  <void id="HashMap1" property="cargoTypes">
    <void method="put">
-    <int>1</int>
-    <object class="domainLogic.DryBulkCargoImpl" id="DryBulkCargoImpl0">
-     <void property="grainSize">
-      <int>5</int>
-     </void>
-     <void id="HashSet0" property="hazards">
-      <void method="add">
-       <object class="java.lang.Enum" method="valueOf">
-        <class>cargo.Hazard</class>
-        <string>EXPLOSIVE</string>
-       </object>
-      </void>
-     </void>
-     <void property="hazards">
-      <object idref="HashSet0"/>
-     </void>
+    <int>2</int>
+    <string>UnitisedCargo</string>
+   </void>
+   <void method="put">
+    <int>3</int>
+    <string>UnitisedCargo</string>
+   </void>
+   <void method="put">
+    <int>4</int>
+    <string>UnitisedCargo</string>
+   </void>
+  </void>
+  <void property="cargoTypes">
+   <object idref="HashMap1"/>
+  </void>
+  <void id="HashMap2" property="cargos">
+   <void method="put">
+    <int>2</int>
+    <object class="domainLogic.UnitisedCargoImpl">
      <void property="insertionDate">
       <object class="java.util.Date">
-       <long>1783361148551</long>
+       <long>1783505602269</long>
       </object>
      </void>
      <void property="owner">
       <object idref="CustomerImpl0"/>
      </void>
      <void property="value">
-      <object class="java.math.BigDecimal">
-       <string>1500.50</string>
+      <object class="java.math.BigDecimal" id="BigDecimal0">
+       <string>10</string>
       </object>
      </void>
     </object>
    </void>
+   <void method="put">
+    <int>3</int>
+    <object class="domainLogic.UnitisedCargoImpl">
+     <void property="insertionDate">
+      <object class="java.util.Date">
+       <long>1783505622248</long>
+      </object>
+     </void>
+     <void property="owner">
+      <object idref="CustomerImpl1"/>
+     </void>
+     <void property="value">
+      <object idref="BigDecimal0"/>
+     </void>
+    </object>
+   </void>
+   <void method="put">
+    <int>4</int>
+    <object class="domainLogic.UnitisedCargoImpl">
+     <void property="insertionDate">
+      <object class="java.util.Date">
+       <long>1783505626315</long>
+      </object>
+     </void>
+     <void property="owner">
+      <object idref="CustomerImpl2"/>
+     </void>
+     <void property="value">
+      <object idref="BigDecimal0"/>
+     </void>
+    </object>
+   </void>
   </void>
-  <void property="customers">
+  <void property="cargos">
+   <object idref="HashMap2"/>
+  </void>
+  <void id="HashSet0" property="customers">
+   <void method="add">
+    <object idref="CustomerImpl1"/>
+   </void>
    <void method="add">
     <object class="domainLogic.CustomerImpl">
      <void property="name">
-      <string>Bob</string>
+      <string>Othman</string>
      </void>
     </object>
    </void>
    <void method="add">
     <object idref="CustomerImpl0"/>
    </void>
+   <void method="add">
+    <object idref="CustomerImpl2"/>
+   </void>
+  </void>
+  <void property="customers">
+   <object idref="HashSet0"/>
+  </void>
+  <void id="HashMap3" property="insertionDates">
+   <void method="put">
+    <int>2</int>
+    <object class="java.util.Date">
+     <long>1783505602269</long>
+    </object>
+   </void>
+   <void method="put">
+    <int>3</int>
+    <object class="java.util.Date">
+     <long>1783505622248</long>
+    </object>
+   </void>
+   <void method="put">
+    <int>4</int>
+    <object class="java.util.Date">
+     <long>1783505626315</long>
+    </object>
+   </void>
   </void>
   <void property="insertionDates">
+   <object idref="HashMap3"/>
+  </void>
+  <void id="HashMap4" property="inspectionDates">
    <void method="put">
-    <int>1</int>
+    <int>2</int>
     <object class="java.util.Date">
-     <long>1783361148551</long>
+     <long>1783505602269</long>
+    </object>
+   </void>
+   <void method="put">
+    <int>3</int>
+    <object class="java.util.Date">
+     <long>1783505622248</long>
+    </object>
+   </void>
+   <void method="put">
+    <int>4</int>
+    <object class="java.util.Date">
+     <long>1783505626315</long>
     </object>
    </void>
   </void>
   <void property="inspectionDates">
-   <void method="put">
-    <int>1</int>
-    <object class="java.util.Date">
-     <long>1783361148551</long>
-    </object>
-   </void>
+   <object idref="HashMap4"/>
   </void>
   <void property="nextLocation">
-   <int>2</int>
+   <int>5</int>
   </void>
  </object>
 </java>

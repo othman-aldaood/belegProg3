@@ -1,10 +1,12 @@
 package gui;
 
 import domainLogic.WarehouseManager;
+import events.PersistenceCommandListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -19,6 +21,7 @@ import java.util.Date;
 public class WarehouseController {
 
     private WarehouseManager gl; // Referenz zur Geschaeftslogik
+    private PersistenceCommandListener persistenceListener; // Verdrahtung im setup (GUIMain)
 
     @FXML
     private TableView<CustomerViewModel> kundenTabelle;
@@ -45,6 +48,8 @@ public class WarehouseController {
     private TextField frachtKundeInput;
     @FXML
     private TextField platzInput;
+    @FXML
+    private ComboBox<String> persistenzTechnik;
 
     // Listen fuer automatische Aktualisierung
     private final ObservableList<CustomerViewModel> kundenDaten = FXCollections.observableArrayList();
@@ -65,6 +70,18 @@ public class WarehouseController {
         frachtTabelle.setItems(frachtDaten);
 
         setupDragAndDrop();
+
+        // Auswahl der Persistenz-Technologie (wie im CLI: JOS oder JBP)
+        persistenzTechnik.setItems(FXCollections.observableArrayList("JOS", "JBP"));
+        persistenzTechnik.getSelectionModel().selectFirst();
+    }
+
+    /**
+     * Setzt den Handler fuer Speichern/Laden.
+     * Wird im setup (GUIMain) eingehangen; die GUI kennt die Persistenz-Technik nicht.
+     */
+    public void setPersistenceListener(PersistenceCommandListener persistenceListener) {
+        this.persistenceListener = persistenceListener;
     }
 
     /**
@@ -166,6 +183,21 @@ public class WarehouseController {
             aktualisiereTabellen();
         } catch (NumberFormatException e) {
             System.out.println("Bitte gültige ID eingeben.");
+        }
+    }
+
+    @FXML
+    private void handleSpeichern() {
+        if (persistenceListener != null) {
+            persistenceListener.onSave(persistenzTechnik.getValue());
+        }
+    }
+
+    @FXML
+    private void handleLaden() {
+        if (persistenceListener != null) {
+            persistenceListener.onLoad(persistenzTechnik.getValue());
+            aktualisiereTabellen();
         }
     }
 

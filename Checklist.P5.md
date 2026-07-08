@@ -19,7 +19,7 @@ Flüchtige Quellen, wie LLMs, sind nachvollziehbar zu dokumentieren.
 0 Punkte wenn die grundsätzlichen Anforderungen nicht erfüllt sind. 1 Punkt für die Erfüllung der Basisanforderung und darauf aufbauend je ein Punkt für die nummerierten Anforderungen.
 
 ### grundsätzliche Anforderungen
-- [x] Quellen angegeben _(LLM als Hilfe genutzt um ProjektStrukturظFehler zu heben, Code Kommenta)_
+- [x] Quellen angegeben _(LLM als Hilfe genutzt um ProjektStruktur Fehler zu heben, Code Kommentar, https://docs.oracle.com/javase/8/docs/api/java/io/package-summary.html)_
 - [x] Abgabe als zip-Archiv mit dem Projekt im root
 - [x] IntelliJ-Projekt (kein Gradle, Maven o.ä.)
 - [x] keine weiteren Bibliotheken außer JUnit5, Mockito und JavaFX (und deren Abhängigkeiten)
@@ -36,7 +36,7 @@ Flüchtige Quellen, wie LLMs, sind nachvollziehbar zu dokumentieren.
 
 ### 1 Integration
 - [x] Persistierung und Geschäftslogik korrekt aufgeteilt _(eigenes Modul io, Verdrahtung ueber PersistenceCommandListener im setup)_
-- [x] Einbindung der Persistierung im CLI oder GUI _(CLI, Persistenzmodus :p mit save/load [JOS|JBP])_
+- [x] Einbindung der Persistierung im CLI oder GUI _(CLI und GUI, im CLI Persistenzmodus :p mit save/load [JOS|JBP])_
 
 ### 2 Mockito
 abhängig von 1
