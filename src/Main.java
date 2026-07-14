@@ -5,22 +5,34 @@ import io.JBPPersistence;
 import io.JOSPersistence;
 import io.PersistenceStrategy;
 
+import net.NetProtocol;
+import net.NetworkClient;
+import net.TCPClient;
+import net.UDPClient;
+
 import java.util.Scanner;
 
 /**
  * Hauptklasse für den Start der Anwendung.
  * Liegt im default package, wie in den Anforderungen verlangt.
+ * Argumente: eine Zahl setzt die Kapazität; TCP oder UDP startet die
+ * Anwendung als Client für das entsprechende Protokoll (der Server läuft
+ * bereits und an ihm wurde die Kapazität gesetzt).
  */
 public class Main {
     public static void main(String[] args) {
-        // 1. Argumente auslesen (Kapazität setzen, falls angegeben)
+        // 1. Argumente auslesen
         int capacity = 100; // Standardkapazität
         if (args.length > 0) {
+            if (args[0].equals("TCP") || args[0].equals("UDP")) {
+                startNetworkClient(args[0]);
+                return;
+            }
             try {
                 capacity = Integer.parseInt(args[0]);
                 System.out.println("Kapazität aus Argumenten gesetzt auf: " + capacity);
             } catch (NumberFormatException e) {
-                // Falls das Argument keine Zahl ist (z.B. TCP/UDP später)
+                // ungültiges Argument -> Standardkapazität
             }
         }
 
@@ -77,6 +89,34 @@ public class Main {
         System.out.println("  :x  -> Anwendung beenden");
         System.out.println("---------------------------------------------------------");
         System.out.println("Bitte einen Modus eingeben (z.B. ':c' gefolgt von Enter):");
+        Scanner scanner = new Scanner(System.in);
+        cli.start(scanner);
+        scanner.close();
+    }
+
+    /**
+     * Startet das CLI als Netzwerk-Client (Prototyp 6).
+     * Die Oberfläche bleibt unverändert, nur der Listener wird durch den
+     * Netzwerk-Client ersetzt (Konfiguration im setup). Beobachter und
+     * Persistenz müssen im Netzwerkmodus laut Anforderung nicht unterstützt werden.
+     */
+    private static void startNetworkClient(String protocol) {
+        NetworkClient netClient;
+        try {
+            if (protocol.equals("TCP")) {
+                netClient = new TCPClient("localhost", NetProtocol.PORT);
+            } else {
+                netClient = new UDPClient("localhost", NetProtocol.PORT);
+            }
+        } catch (Exception e) {
+            System.out.println("Fehler: Server nicht erreichbar (" + e.getMessage() + ").");
+            return;
+        }
+
+        ConsoleClient cli = new ConsoleClient(netClient);
+        netClient.setFeedbackListener(cli);
+
+        System.out.println("Frachtverwaltung als " + protocol + "-Client gestartet (:x beendet).");
         Scanner scanner = new Scanner(System.in);
         cli.start(scanner);
         scanner.close();

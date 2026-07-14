@@ -10,7 +10,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="contract" />
     <orderEntry type="module" module-name="domainLogic" />
-    <orderEntry type="library" scope="TEST" name="Mockito5" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito.core" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit5" level="project" />
   </component>
 </module>

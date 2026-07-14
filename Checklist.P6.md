@@ -1,10 +1,9 @@
-# Prototyp 5: I/O
-Realisieren Sie die Funktionalität den Zustand der Geschäftslogik zu laden und zu speichern.
-Erstellen Sie zur Demonstration eine main-Methode die eine Verwaltung mit Frachtstücke befüllt und den Zustand ausgibt. Anschließend soll sie gespeichert und geladen werden und der Zustand erneut ausgegeben werden.
+# Prototyp 6: Netzwerk
+Erweitern Sie das CLI als Client-Server-Lösung. Der Client soll dabei die Oberfläche zur Bedienung realisieren und der Server die Geschäftslogik enthalten.
 
-Änderungen am Vertrag sind ab jetzt zulässig. Dabei müssen Funktionsumfang, Kapselung und die Erweiterbarkeit erhalten bleiben.
+Client und Server haben jeweils eine eigene main-Methode (IntelliJ kann mehrere Applikationen parallel ausführen).
 
-Weitere Informationen stehen im Anforderungsdokument unter der Überschrift I/O.
+Weitere Informationen stehen im Anforderungsdokument unter der Überschrift Net.
 
 ## Abgabeanforderungen
 Die Abgabe hat als zip-Datei zu erfolgen, die ein lauffähiges IntelliJ-IDEA-Projekt enthält. Sie sollte die befüllte Checkliste im root des Projektes (neben der iml-Datei) enthalten in der der erreichte Stand bezüglich des Bewertungsschemas vermerkt ist.
@@ -19,7 +18,7 @@ Flüchtige Quellen, wie LLMs, sind nachvollziehbar zu dokumentieren.
 0 Punkte wenn die grundsätzlichen Anforderungen nicht erfüllt sind. 1 Punkt für die Erfüllung der Basisanforderung und darauf aufbauend je ein Punkt für die nummerierten Anforderungen.
 
 ### grundsätzliche Anforderungen
-- [x] Quellen angegeben _(LLM als Hilfe genutzt um ProjektStrukturظFehler zu heben, Code Kommenta)_
+- [x] Quellen angegeben _(LLM als Hilfe genutzt,Code Kommntar, Test fehler zu anaylsieren )_
 - [x] Abgabe als zip-Archiv mit dem Projekt im root
 - [x] IntelliJ-Projekt (kein Gradle, Maven o.ä.)
 - [x] keine weiteren Bibliotheken außer JUnit5, Mockito und JavaFX (und deren Abhängigkeiten)
@@ -31,17 +30,14 @@ Flüchtige Quellen, wie LLMs, sind nachvollziehbar zu dokumentieren.
 - [x] ausführbar
 
 ### Basisanforderung
-- [x] Speichern und Laden der Geschäftslogik mit JOS oder JBP
-- [x] main-Methode zur Demonstration der Persistierung _(MainIO)_
+- [x] Trennung zwischen Oberfläche (Client) und Geschäftslogik (Server) _(ServerMain haelt die GL, Main als Client, eigene Prozesse)_
+- [x] TCP- oder UDP-Implementierung für CRUD für einen Typ _(textbasiertes Protokoll ueber CommandProcessor im Modul net)_
 
-### 1 Integration
-- [x] Persistierung und Geschäftslogik korrekt aufgeteilt _(eigenes Modul io, Verdrahtung ueber PersistenceCommandListener im setup)_
-- [x] Einbindung der Persistierung im CLI oder GUI _(CLI, Persistenzmodus :p mit save/load [JOS|JBP])_
+### 1 Mockito
+- [x] je ein Stellvertreter-Test für Einfügen und Anzeigen pro implementierten Server _(CommandProcessorTest; TCP- und UDP-Server verwenden denselben CommandProcessor)_
 
-### 2 Mockito
-abhängig von 1
-- [x] Stellvertreter-Tests für das Speichern und Laden _(ConsoleClientTest, JOSPersistenceTest, JBPPersistenceTest)_
+### 2 beide Technologien
+- [x] Implementierung von Client und Server für TCP und UDP _(UDP mit Request-IDs, Timeout und erneutem Senden gegen Paketverlust und Umsortierung)_
 
-### 3 beide Technologien
-abhängig von 1
-- [x] Speichern und Laden der Geschäftslogik mit JOS **und** JBP
+### 3 Nebenläufigkeit
+- [x] Unterstützung mehrerer konkurierender Clients (TCP oder UDP) _(TCP: ein Thread pro Client, gemeinsame GL)_
