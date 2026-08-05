@@ -1,6 +1,14 @@
 # Compiled class file
 *.class
 
+# Build-Ausgabe von IntelliJ
+out/
+
+# Zur Laufzeit erzeugte Dateien
+log.txt
+warehouse.ser
+warehouse.xml
+
 # Log file
 *.log
 
