@@ -2,6 +2,9 @@ package sim;
 
 import domainLogic.WarehouseManager;
 
+import java.util.Date;
+import java.util.Map;
+
 /**
  * Der modifizierte Konsument für die Simulation 3.
  * Diese Klasse löscht gezielt das Frachtstück mit dem ältesten Inspektionsdatum
@@ -51,10 +54,24 @@ public class Konsument3 implements Runnable {
                     }
                 }
 
-                // Ältestes Frachtstück suchen und löschen
-                int oldestLoc = gl.getOldestInspectionLocation();
-                if (oldestLoc != -1) {
-                    gl.onDeleteCargo(oldestLoc);
+                // Ältestes Frachtstück suchen und löschen. Die Auswahl gehört
+                // zur Simulation (nicht in die GL) und bildet zusammen mit dem
+                // Löschen einen kritischen Bereich.
+                synchronized (gl) {
+                    Map<Integer, Date> inspections = gl.getInspectionDatesMap();
+                    int oldestLoc = -1;
+                    Date oldestDate = null;
+                    for (Map.Entry<Integer, Date> entry : inspections.entrySet()) {
+                        if (oldestDate == null || entry.getValue().before(oldestDate)) {
+                            oldestDate = entry.getValue();
+                            oldestLoc = entry.getKey();
+                        }
+                    }
+                    if (oldestLoc != -1) {
+                        System.out.println(Thread.currentThread().getName()
+                                + ": lösche ältestes Frachtstück auf Platz " + oldestLoc);
+                        gl.onDeleteCargo(oldestLoc);
+                    }
                 }
 
                 monitor.notifyAll(); // Produzenten benachrichtigen

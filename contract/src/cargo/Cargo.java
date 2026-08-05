@@ -47,4 +47,14 @@ public interface Cargo extends Storable, Serializable {
      * @param date das neue Inspektionsdatum
      */
     void setLastInspectionDate(Date date);
+
+    /**
+     * Erzeugt eine tiefe Kopie dieses Frachtstücks mit dem übergebenen
+     * Lagerplatz (Prototype-Muster). Ermöglicht der Geschäftslogik die
+     * Herausgabe defensiver Kopien ohne down casts (Kapselung).
+     *
+     * @param storageLocation der Lagerplatz, den die Kopie tragen soll
+     * @return eine unabhängige Kopie dieses Frachtstücks
+     */
+    Cargo copy(int storageLocation);
 }

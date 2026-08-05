@@ -1,5 +1,5 @@
 import domainLogic.WarehouseManager;
-import events.GLFeedbackListener;
+import events.ChangeObserver;
 import sim.CargoGenerator;
 import sim.Konsument;
 import sim.Produzent;
@@ -8,7 +8,7 @@ import sim.RandomCargoGenerator;
 /**
  * Die Ausführungsklasse für Simulation 2.
  * Startet n Produzenten und n Konsumenten nebenläufig.
- * Die Konsolenausgabe erfolgt strikt über einen Beobachter (GLFeedbackListener).
+ * Die Konsolenausgabe der Änderungen erfolgt strikt über einen Beobachter (ChangeObserver).
  */
 public class Simulation2 {
 
@@ -42,16 +42,19 @@ public class Simulation2 {
 
         WarehouseManager gl = new WarehouseManager(capacity);
 
-        // BEOBACHTER (Observer) REGISTRIEREN
-        gl.setFeedbackListener(new GLFeedbackListener() {
+        // BEOBACHTER (Observer) REGISTRIEREN: Änderungen an der GL werden laut
+        // Anforderung durch einen Beobachter auf der Konsole ausgegeben.
+        // Der Beobachter erhält nur das Signal und fragt den Zustand selbst
+        // bei der GL ab (pull).
+        gl.addChangeObserver(new ChangeObserver() {
             /**
-             * Verarbeitet das System-Feedback synchronisiert für eine geordnete Konsolenausgabe.
-             * * @param feedback Die Feedback-Nachricht der Geschäftslogik.
+             * Gibt die Änderung synchronisiert für eine geordnete Konsolenausgabe aus.
              */
             @Override
-            public void onFeedbackReceived(String feedback) {
+            public void onChanged() {
                 synchronized (System.out) {
-                    System.out.println("[BEOBACHTER] " + feedback);
+                    System.out.println("[BEOBACHTER] Änderung an der GL, Bestand: "
+                            + gl.getCurrentSize());
                 }
             }
         });

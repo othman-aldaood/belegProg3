@@ -129,4 +129,17 @@ public class DryBulkAndUnitisedCargoImpl implements DryBulkAndUnitisedCargo, Ser
     public void setFragile(boolean fragile) {
         this.fragile = fragile;
     }
+
+    @Override
+    public DryBulkAndUnitisedCargoImpl copy(int storageLocation) {
+        // Tiefe Kopie (Prototype): auch Eigentuemerin und Daten werden kopiert,
+        // damit Aenderungen an der Kopie die Geschaeftslogik nicht erreichen.
+        Customer ownerCopy = this.owner == null ? null : new CustomerImpl(this.owner.getName());
+        DryBulkAndUnitisedCargoImpl copy = new DryBulkAndUnitisedCargoImpl(ownerCopy, this.value,
+                this.hazards, this.grainSize, this.fragile);
+        copy.setStorageLocation(storageLocation);
+        copy.setInsertionDate(this.insertionDate == null ? null : new Date(this.insertionDate.getTime()));
+        copy.setLastInspectionDate(this.lastInspectionDate == null ? null : new Date(this.lastInspectionDate.getTime()));
+        return copy;
+    }
 }

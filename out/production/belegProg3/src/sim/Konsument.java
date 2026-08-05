@@ -38,13 +38,20 @@ public class Konsument implements Runnable {
     @Override
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
-            // 1. Enthaltene Frachtstücke (Lagerplätze) abrufen
-            List<Integer> locations = gl.getStorageLocations();
+            // Kritischer Bereich: Abrufen, Auswählen und Löschen müssen atomar
+            // erfolgen, damit kein anderer Thread zwischen Auswahl und Löschen
+            // den Zustand ändern kann.
+            synchronized (gl) {
+                // 1. Enthaltene Frachtstücke (Lagerplätze) abrufen
+                List<Integer> locations = gl.getStorageLocations();
 
-            // 2. Daraus zufällig eines auswählen und löschen (falls nicht leer)
-            if (!locations.isEmpty()) {
-                int randomLocation = locations.get(random.nextInt(locations.size()));
-                gl.onDeleteCargo(randomLocation);
+                // 2. Daraus zufällig eines auswählen und löschen (falls nicht leer)
+                if (!locations.isEmpty()) {
+                    int randomLocation = locations.get(random.nextInt(locations.size()));
+                    System.out.println(Thread.currentThread().getName()
+                            + ": lösche Frachtstück auf Platz " + randomLocation);
+                    gl.onDeleteCargo(randomLocation);
+                }
             }
 
             // Für die Abgabe MUSS Thread.sleep auf 0 gesetzt sein!

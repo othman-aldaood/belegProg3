@@ -2,7 +2,7 @@ package sim;
 
 import domainLogic.WarehouseManager;
 import org.junit.jupiter.api.Test;
-import java.util.Arrays; // تأكد من وجود هذا الـ Import
+import java.util.Arrays;
 import static org.mockito.Mockito.*;
 
 class KonsumentTest {
@@ -11,7 +11,6 @@ class KonsumentTest {
     void testKonsumentDeletesCargoCorrectly() {
         WarehouseManager glMock = mock(WarehouseManager.class);
 
-        // التعديل هنا:
         when(glMock.getStorageLocations()).thenReturn(Arrays.asList(42));
 
         doAnswer(invocation -> {

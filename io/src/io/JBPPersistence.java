@@ -38,14 +38,31 @@ public class JBPPersistence implements PersistenceStrategy {
                 }
             });
 
-            encoder.writeObject(manager);
+            // Es wird nicht die GL selbst serialisiert, sondern ein Snapshot
+            // (Transferobjekt der Persistenzschicht). So braucht die GL keine
+            // oeffentlichen Setter und ihre Kapselung bleibt erhalten.
+            WarehouseSnapshot snapshot = new WarehouseSnapshot();
+            snapshot.setCapacity(manager.getCapacity());
+            snapshot.setNextLocation(manager.getNextLocation());
+            snapshot.setCustomers(manager.getAllCustomers());
+            snapshot.setCargos(manager.getCargosMap());
+            snapshot.setCargoOwners(manager.getCargoOwnersMap());
+            snapshot.setCargoTypes(manager.getCargoTypesMap());
+            snapshot.setInsertionDates(manager.getInsertionDatesMap());
+            snapshot.setInspectionDates(manager.getInspectionDatesMap());
+            encoder.writeObject(snapshot);
         }
     }
 
     @Override
     public WarehouseManager load(InputStream in) throws Exception {
         try (XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(in))) {
-            return (WarehouseManager) decoder.readObject();
+            // Der cast ist der technisch unvermeidbare beim Lesen aus einem stream.
+            WarehouseSnapshot snapshot = (WarehouseSnapshot) decoder.readObject();
+            return new WarehouseManager(snapshot.getCapacity(), snapshot.getNextLocation(),
+                    snapshot.getCustomers(), snapshot.getCargos(), snapshot.getCargoOwners(),
+                    snapshot.getCargoTypes(), snapshot.getInsertionDates(),
+                    snapshot.getInspectionDates());
         }
     }
 }

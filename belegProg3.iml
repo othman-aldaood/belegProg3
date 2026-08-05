@@ -13,6 +13,7 @@
     <orderEntry type="module" module-name="domainLogic" />
     <orderEntry type="module" module-name="gui" />
     <orderEntry type="module" module-name="io" />
+    <orderEntry type="module" module-name="log" />
     <orderEntry type="module" module-name="net" />
     <orderEntry type="module" module-name="sim" />
     <orderEntry type="library" name="mockito.core" level="project" />

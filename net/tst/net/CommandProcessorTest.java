@@ -16,7 +16,6 @@ import org.mockito.Mockito;
  *
  * Testvorgaben: genau ein verify pro Test, keine Schleifen, kein @BeforeEach.
  *
- * // Quelle: LLM (Claude) als Hilfe genutzt.
  */
 class CommandProcessorTest {
 

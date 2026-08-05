@@ -8,8 +8,11 @@ import java.util.Scanner;
 
 /**
  * Alternativ konfiguriertes CLI.
- * Deaktivierte Funktionalitäten: Löschen von Kunden und Frachtstücken.
- * Nur EIN Beobachter (Feedback) ist aktiv, wie gefordert.
+ * Deaktivierte Funktionalitäten (laut Anforderung vorzugsweise):
+ * Löschen von Kund*innen und Auflisten der Gefahrenstoffe.
+ * Nur EIN Beobachter (Kapazitätswarnung) ist aktiv, wie gefordert.
+ * Der Unterschied zum normalen CLI besteht nur im setup dieser main-Methode
+ * (Einhängen der listener), nicht in der Implementierung.
  */
 public class AlternativeMain {
     public static void main(String[] args) {
@@ -22,7 +25,8 @@ public class AlternativeMain {
 
         WarehouseManager gl = new WarehouseManager(capacity);
 
-        // Proxy-Pattern: Weiterleitung aller Befehle an die GL, AUSSER den Lösch-Befehlen
+        // Proxy-Pattern: Weiterleitung aller Befehle an die GL, AUSSER dem Löschen
+        // von Kund*innen und dem Auflisten der Gefahrenstoffe (deaktiviert)
         CargoCommandListener restrictedListener = new CargoCommandListener() {
             @Override
             public void onInsertCustomer(String customerName) { gl.onInsertCustomer(customerName); }
@@ -39,30 +43,34 @@ public class AlternativeMain {
             public void onReadCargos(String cargoType) { gl.onReadCargos(cargoType); }
 
             @Override
-            public void onReadHazards(boolean existing) { gl.onReadHazards(existing); }
-
-            @Override
             public void onUpdateInspectionDate(int storageLocation) { gl.onUpdateInspectionDate(storageLocation); }
 
-            // --- Deaktivierte Funktionen ---
+            @Override
+            public void onDeleteCargo(int storageLocation) { gl.onDeleteCargo(storageLocation); }
+
+            // --- Deaktivierte Funktionen (laut Anforderung dokumentiert) ---
             @Override
             public void onDeleteCustomer(String customerName) {
-                System.out.println("Löschen von Kunden ist in dieser alternativen Version DEAKTIVIERT.");
+                System.out.println("Löschen von Kund*innen ist in dieser alternativen Version DEAKTIVIERT.");
             }
 
             @Override
-            public void onDeleteCargo(int storageLocation) {
-                System.out.println("Löschen von Frachtstücken ist in dieser alternativen Version DEAKTIVIERT.");
+            public void onReadHazards(boolean existing) {
+                System.out.println("Auflisten der Gefahrenstoffe ist in dieser alternativen Version DEAKTIVIERT.");
             }
         };
 
         ConsoleClient cli = new ConsoleClient(restrictedListener);
 
-        // NUR EIN BEOBACHTER: Wir registrieren nur das Feedback, der CapacityObserver wird weggelassen!
+        // NUR EIN BEOBACHTER AKTIV: nur die Kapazitätswarnung wird registriert.
+        // Der Gefahrenstoff-Beobachter wird weggelassen (sein pull würde das
+        // deaktivierte Auflisten der Gefahrenstoffe verwenden).
         gl.setFeedbackListener(cli);
-        // gl.addCapacityObserver(cli); // <--- Abgeschaltet für die Alternative!
+        gl.addCapacityObserver(cli);
+        // gl.addHazardObserver(cli); // <--- Abgeschaltet für die Alternative!
 
-        System.out.println("Willkommen in der ALTERNATIVEN Frachtverwaltung (Löschen & Kapazitätswarnung deaktiviert).");
+        System.out.println("ALTERNATIVE Frachtverwaltung gestartet"
+                + " (deaktiviert: Löschen von Kund*innen, Auflisten der Gefahrenstoffe).");
         Scanner scanner = new Scanner(System.in);
         cli.start(scanner);
         scanner.close();

@@ -1,4 +1,5 @@
 import domainLogic.WarehouseManager;
+import events.ChangeObserver;
 import sim.CargoGenerator;
 import sim.Konsument;
 import sim.Produzent;
@@ -29,6 +30,18 @@ public class Simulation1 {
         System.out.println("=== Starte Simulation 1 (Kapazität: " + capacity + ") ===");
 
         WarehouseManager gl = new WarehouseManager(capacity);
+
+        // Jede Änderung an der GL wird über einen Beobachter ausgegeben (laut
+        // Anforderung). Der Beobachter erhält nur das Signal und fragt den
+        // Zustand selbst bei der GL ab (pull).
+        gl.addChangeObserver(new ChangeObserver() {
+            @Override
+            public void onChanged() {
+                System.out.println("[Beobachter] Änderung an der GL, Bestand: "
+                        + gl.getCurrentSize());
+            }
+        });
+
         gl.onInsertCustomer("Alice");
 
         CargoGenerator randomGenerator = new RandomCargoGenerator("Alice");

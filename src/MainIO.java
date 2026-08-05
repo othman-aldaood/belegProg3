@@ -1,4 +1,5 @@
 import domainLogic.WarehouseManager;
+import events.GLFeedbackListener;
 import io.PersistenceStrategy;
 import io.JOSPersistence;
 import io.JBPPersistence;
@@ -15,8 +16,17 @@ public class MainIO {
     public static void main(String[] args) {
         System.out.println("=== Prototyp 5: I/O Demonstration ===\n");
 
+        // Konsolen-Ausgabe der GL-Rückmeldungen (die GL selbst nutzt kein System.out)
+        GLFeedbackListener konsole = new GLFeedbackListener() {
+            @Override
+            public void onFeedbackReceived(String feedback) {
+                System.out.println(feedback);
+            }
+        };
+
         // 1. Initialisierung und Befüllung der Geschäftslogik
         WarehouseManager originalManager = new WarehouseManager(10);
+        originalManager.setFeedbackListener(konsole);
 
         // Kunden und Frachtstücke hinzufügen
         originalManager.onInsertCustomer("Alice");
@@ -60,6 +70,7 @@ public class MainIO {
 
             // Laden
             WarehouseManager loadedJosManager = jos.load(josFilePath);
+            loadedJosManager.setFeedbackListener(konsole);
             System.out.println("JOS Laden erfolgreich! Geladener Zustand:");
             loadedJosManager.onReadCustomers();
             loadedJosManager.onReadCargos("");
@@ -83,6 +94,7 @@ public class MainIO {
 
             // Laden
             WarehouseManager loadedJbpManager = jbp.load(jbpFilePath);
+            loadedJbpManager.setFeedbackListener(konsole);
             System.out.println("JBP Laden erfolgreich! Geladener Zustand:");
             loadedJbpManager.onReadCustomers();
             loadedJbpManager.onReadCargos("");

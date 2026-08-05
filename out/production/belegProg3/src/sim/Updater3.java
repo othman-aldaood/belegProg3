@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Der neue Updater-Thread für die Simulation 3.
- * Wählt kontinuierlich ein zufälliges Frachtstück aus und aktualisiert dessen Inspektionsdatum.
+ * Der Updater-Thread für die Simulation 3.
+ * Wählt kontinuierlich ein zufälliges Frachtstück aus und aktualisiert dessen
+ * Inspektionsdatum. Er nimmt laut Anforderung NICHT an der
+ * wait/notify-Synchronisation von Produzenten und Konsumenten teil.
  */
 public class Updater3 implements Runnable {
 
@@ -17,11 +19,6 @@ public class Updater3 implements Runnable {
     private final WarehouseManager gl;
 
     /**
-     * Das gemeinsame Monitor-Objekt.
-     */
-    private final Object monitor;
-
-    /**
      * Zufallsgenerator für die Auswahl.
      */
     private final Random random = new Random();
@@ -29,12 +26,10 @@ public class Updater3 implements Runnable {
     /**
      * Konstruktor für den Updater-Thread.
      *
-     * @param gl      Die Instanz der Geschäftslogik.
-     * @param monitor Das Monitor-Objekt für wait/notify.
+     * @param gl Die Instanz der Geschäftslogik.
      */
-    public Updater3(WarehouseManager gl, Object monitor) {
+    public Updater3(WarehouseManager gl) {
         this.gl = gl;
-        this.monitor = monitor;
     }
 
     /**
@@ -43,24 +38,16 @@ public class Updater3 implements Runnable {
     @Override
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
-            synchronized (monitor) {
-                while (gl.getStorageLocations().isEmpty()) {
-                    monitor.notifyAll();
-                    try {
-                        monitor.wait();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-                }
-
+            // Kritischer Bereich: Abrufen, Auswählen und Aktualisieren müssen
+            // atomar erfolgen, damit kein anderer Thread dazwischen ändern kann.
+            synchronized (gl) {
                 List<Integer> locations = gl.getStorageLocations();
                 if (!locations.isEmpty()) {
                     int randomLoc = locations.get(random.nextInt(locations.size()));
+                    System.out.println(Thread.currentThread().getName()
+                            + ": löst Inspektion auf Platz " + randomLoc + " aus");
                     gl.onUpdateInspectionDate(randomLoc);
                 }
-
-                monitor.notifyAll();
             }
 
             try {

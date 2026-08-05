@@ -50,9 +50,9 @@ public class Simulation3 {
 
         WarehouseManager gl = new WarehouseManager(capacity);
 
-        // 2. BEOBACHTER DEAKTIVIEREN (Stummgeschaltet)
-        gl.setFeedbackListener(feedback -> { /* Keine Ausgabe auf der Konsole */ });
-
+        // Kein Beobachter registriert: die Änderungen werden laut Anforderung
+        // nicht mehr durch einen Beobachter ausgegeben, sondern durch den
+        // periodischen Status-Thread (ScheduledExecutorService).
         gl.onInsertCustomer("Alice");
 
         CargoGenerator randomGenerator = new RandomCargoGenerator("Alice");
@@ -61,15 +61,16 @@ public class Simulation3 {
         // 3. SCHEDULED EXECUTOR SERVICE (gibt den Zustand periodisch aus)
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> {
-            int currentSize = gl.getStorageLocations().size();
-            System.out.println("[STATUS-UPDATE] Aktuelle Auslastung: " + currentSize + " / " + gl.getCapacity());
+            System.out.println("[STATUS-UPDATE] Aktuelle Auslastung: "
+                    + gl.getCurrentSize() + " / " + gl.getCapacity()
+                    + " | Plätze: " + gl.getStorageLocations());
         }, 0, intervalMs, TimeUnit.MILLISECONDS);
 
         // 4. THREADS STARTEN
         for (int i = 1; i <= numThreads; i++) {
             new Thread(new Produzent3(gl, randomGenerator, monitor), "Produzent-" + i).start();
             new Thread(new Konsument3(gl, monitor), "Konsument-" + i).start();
-            new Thread(new Updater3(gl, monitor), "Updater-" + i).start();
+            new Thread(new Updater3(gl), "Updater-" + i).start();
         }
     }
 }

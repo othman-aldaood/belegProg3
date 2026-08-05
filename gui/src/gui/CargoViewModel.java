@@ -14,7 +14,8 @@ public class CargoViewModel {
     private final IntegerProperty lagerplatz = new SimpleIntegerProperty();
     private final StringProperty kundenName = new SimpleStringProperty();
     private final ObjectProperty<Date> inspektionsDatum = new SimpleObjectProperty<>();
-    private final ObjectProperty<Duration> einlagerungsDauer = new SimpleObjectProperty<>();
+    // Einlagerungsdauer in Sekunden (laut Anforderung), als Zahl sortierbar
+    private final LongProperty einlagerungsDauer = new SimpleLongProperty();
 
     /**
      * Konstruktor zur Initialisierung der Properties mit primitiven Daten oder Standard-Objekten.
@@ -23,7 +24,7 @@ public class CargoViewModel {
         this.lagerplatz.set(platz);
         this.kundenName.set(kunde);
         this.inspektionsDatum.set(inspektion);
-        this.einlagerungsDauer.set(dauer);
+        this.einlagerungsDauer.set(dauer == null ? 0L : dauer.getSeconds());
     }
 
     // --- Getter fuer die JavaFX-Properties (Notwendig fuer PropertyValueFactory) ---
@@ -40,7 +41,7 @@ public class CargoViewModel {
         return this.inspektionsDatum;
     }
 
-    public ObjectProperty<Duration> einlagerungsDauerProperty() {
+    public LongProperty einlagerungsDauerProperty() {
         return this.einlagerungsDauer;
     }
 }

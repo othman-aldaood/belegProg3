@@ -117,4 +117,16 @@ public class DryBulkCargoImpl implements DryBulkCargo, Serializable {
     public void setGrainSize(int grainSize) {
         this.grainSize = grainSize;
     }
+
+    @Override
+    public DryBulkCargoImpl copy(int storageLocation) {
+        // Tiefe Kopie (Prototype): auch Eigentuemerin und Daten werden kopiert,
+        // damit Aenderungen an der Kopie die Geschaeftslogik nicht erreichen.
+        Customer ownerCopy = this.owner == null ? null : new CustomerImpl(this.owner.getName());
+        DryBulkCargoImpl copy = new DryBulkCargoImpl(ownerCopy, this.value, this.hazards, this.grainSize);
+        copy.setStorageLocation(storageLocation);
+        copy.setInsertionDate(this.insertionDate == null ? null : new Date(this.insertionDate.getTime()));
+        copy.setLastInspectionDate(this.lastInspectionDate == null ? null : new Date(this.lastInspectionDate.getTime()));
+        return copy;
+    }
 }

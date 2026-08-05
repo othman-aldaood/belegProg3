@@ -28,8 +28,18 @@ public class GUIMain extends Application {
         // Controller holen und GL uebergeben
         WarehouseController controller = loader.getController();
 
-        // TODO: Initialisiere hier deine GL (WarehouseManager) so wie in der CLI
-        WarehouseManager manager = new WarehouseManager(); // eventuell Parameter anpassen
+        // Kapazität optional per Kommandozeilenargument (wie im CLI)
+        int capacity = 100;
+        if (!getParameters().getRaw().isEmpty()) {
+            try {
+                capacity = Integer.parseInt(getParameters().getRaw().get(0));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        WarehouseManager manager = new WarehouseManager(capacity);
+
+        // Rückmeldungen der GL werden im Status-Label der GUI angezeigt
+        manager.setFeedbackListener(controller);
         controller.setWarehouseManager(manager);
 
         primaryStage.setTitle("Lagerverwaltung (Warehouse Management)");

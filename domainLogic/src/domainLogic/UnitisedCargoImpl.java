@@ -93,4 +93,16 @@ public class UnitisedCargoImpl implements UnitisedCargo, Serializable {
             this.hazards = new HashSet<>();
         }
     }
+
+    @Override
+    public UnitisedCargoImpl copy(int storageLocation) {
+        // Tiefe Kopie (Prototype): auch Eigentuemerin und Daten werden kopiert,
+        // damit Aenderungen an der Kopie die Geschaeftslogik nicht erreichen.
+        Customer ownerCopy = this.owner == null ? null : new CustomerImpl(this.owner.getName());
+        UnitisedCargoImpl copy = new UnitisedCargoImpl(ownerCopy, this.value, this.hazards, this.fragile);
+        copy.setStorageLocation(storageLocation);
+        copy.setInsertionDate(this.insertionDate == null ? null : new Date(this.insertionDate.getTime()));
+        copy.setLastInspectionDate(this.lastInspectionDate == null ? null : new Date(this.lastInspectionDate.getTime()));
+        return copy;
+    }
 }

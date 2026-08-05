@@ -2,6 +2,8 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -27,7 +29,7 @@
                 <TableColumn fx:id="lagerplatzSpalte" text="Lagerplatz" prefWidth="100"/>
                 <TableColumn fx:id="frachtKundeSpalte" text="Kunde" prefWidth="150"/>
                 <TableColumn fx:id="inspektionsDatumSpalte" text="Inspektionsdatum" prefWidth="150"/>
-                <TableColumn fx:id="einlagerungsDauerSpalte" text="Einlagerungsdauer" prefWidth="150"/>
+                <TableColumn fx:id="einlagerungsDauerSpalte" text="Einlagerungsdauer (s)" prefWidth="150"/>
             </columns>
         </TableView>
     </HBox>
@@ -38,11 +40,17 @@
         <HBox spacing="10" alignment="CENTER_LEFT">
             <TextField fx:id="kundenNameInput" promptText="Kundenname eingeben" />
             <Button text="Kunde anlegen" onAction="#handleKundeAnlegen" />
+            <Button text="Kunde loeschen" onAction="#handleKundeLoeschen" />
         </HBox>
 
         <HBox spacing="10" alignment="CENTER_LEFT">
-            <TextField fx:id="frachtKundeInput" promptText="Kunde fuer Fracht" />
-            <Button text="Fracht einfuegen (Nebenlaeufig)" onAction="#handleFrachtEinfuegen" style="-fx-base: lightgreen;" />
+            <ComboBox fx:id="typAuswahl" promptText="Fracht-Typ" />
+            <TextField fx:id="frachtKundeInput" promptText="Kunde fuer Fracht" prefWidth="120" />
+            <TextField fx:id="wertInput" promptText="Wert (z.B. 4004,50)" prefWidth="120" />
+            <TextField fx:id="hazardsInput" promptText="Gefahrenstoffe, kommasepariert" prefWidth="180" />
+            <TextField fx:id="grainSizeInput" promptText="GrainSize" prefWidth="80" />
+            <CheckBox fx:id="fragileInput" text="fragile" />
+            <Button text="Fracht einfuegen (nebenlaeufig)" onAction="#handleFrachtEinfuegen" style="-fx-base: lightgreen;" />
         </HBox>
 
         <HBox spacing="10" alignment="CENTER_LEFT">
@@ -50,5 +58,14 @@
             <Button text="Fracht loeschen" onAction="#handleFrachtLoeschen" />
             <Button text="Inspektion durchfuehren" onAction="#handleInspektionSetzen" />
         </HBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <TextField fx:id="typFilterInput" promptText="Typ-Filter (leer = alle)" />
+            <Button text="Frachtstuecke anzeigen" onAction="#handleFrachtFiltern" />
+            <Button text="Vorhandene Gefahrenstoffe" onAction="#handleHazardsVorhanden" />
+            <Button text="Nicht vorhandene Gefahrenstoffe" onAction="#handleHazardsFehlend" />
+        </HBox>
+
+        <Label fx:id="statusLabel" style="-fx-text-fill: #444444;" wrapText="true"/>
     </VBox>
 </VBox>

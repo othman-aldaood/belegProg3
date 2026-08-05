@@ -1,10 +1,17 @@
 package gui;
 
 import domainLogic.WarehouseManager;
+import events.GLFeedbackListener;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -13,10 +20,22 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 
+import java.math.BigDecimal;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-public class WarehouseController {
+/**
+ * Controller der grafischen Oberfläche. Bietet den gleichen Funktionsumfang
+ * wie das CLI (abzüglich der Beobachter und der Netzwerkfunktionalität):
+ * Kund*innen anlegen/löschen, Frachtstücke aller Typen einfügen (mit Wert,
+ * Gefahrenstoffen und optionalen Parametern), Anzeigen mit Typ-Filter,
+ * Gefahrenstoffe (vorhanden/nicht vorhanden), Inspektion und Löschen.
+ * Rückmeldungen der GL werden über das Feedback-Event im Status-Label
+ * angezeigt (explizites data binding).
+ */
+public class WarehouseController implements GLFeedbackListener {
 
     private WarehouseManager gl; // Referenz zur Geschaeftslogik
 
@@ -36,23 +55,40 @@ public class WarehouseController {
     @FXML
     private TableColumn<CargoViewModel, Date> inspektionsDatumSpalte;
     @FXML
-    private TableColumn<CargoViewModel, Duration> einlagerungsDauerSpalte;
+    private TableColumn<CargoViewModel, Number> einlagerungsDauerSpalte;
 
     // Eingabefelder
     @FXML
     private TextField kundenNameInput;
     @FXML
+    private ComboBox<String> typAuswahl;
+    @FXML
     private TextField frachtKundeInput;
     @FXML
+    private TextField wertInput;
+    @FXML
+    private TextField hazardsInput;
+    @FXML
+    private TextField grainSizeInput;
+    @FXML
+    private CheckBox fragileInput;
+    @FXML
     private TextField platzInput;
+    @FXML
+    private TextField typFilterInput;
+    @FXML
+    private Label statusLabel;
 
     // Listen fuer automatische Aktualisierung
     private final ObservableList<CustomerViewModel> kundenDaten = FXCollections.observableArrayList();
     private final ObservableList<CargoViewModel> frachtDaten = FXCollections.observableArrayList();
 
+    // Statusmeldung (explizites data binding an das Status-Label)
+    private final StringProperty statusText = new SimpleStringProperty("");
+
     @FXML
     public void initialize() {
-        // Spalten binden
+        // Spalten binden (data binding ueber die JavaFX-Properties der ViewModels)
         kundenNameSpalte.setCellValueFactory(data -> data.getValue().nameProperty());
         frachtAnzahlSpalte.setCellValueFactory(data -> data.getValue().anzahlFrachtstueckeProperty());
 
@@ -63,6 +99,14 @@ public class WarehouseController {
 
         kundenTabelle.setItems(kundenDaten);
         frachtTabelle.setItems(frachtDaten);
+
+        // Unterstuetzt werden alle Typen, die von Cargo und Storable ableiten
+        typAuswahl.setItems(FXCollections.observableArrayList(
+                "DryBulkCargo", "UnitisedCargo", "DryBulkAndUnitisedCargo"));
+        typAuswahl.getSelectionModel().selectFirst();
+
+        // Explizites data binding: das Label folgt der Status-Property
+        statusLabel.textProperty().bind(statusText);
 
         setupDragAndDrop();
     }
@@ -75,7 +119,24 @@ public class WarehouseController {
         aktualisiereTabellen();
     }
 
+    /**
+     * Empfaengt Rueckmeldungen der GL (Feedback-Event) und zeigt sie im
+     * Status-Label an. Kann auch aus Hintergrund-Threads aufgerufen werden.
+     */
+    @Override
+    public void onFeedbackReceived(String feedback) {
+        Platform.runLater(() -> statusText.set(feedback));
+    }
+
     private void aktualisiereTabellen() {
+        aktualisiereTabellen(null);
+    }
+
+    /**
+     * Laedt die Tabellen neu; ein optionaler Typ-Filter (Klassenname)
+     * schraenkt die Frachtliste ein (leer/null = alle).
+     */
+    private void aktualisiereTabellen(String typFilter) {
         if (gl == null) return;
 
         kundenDaten.clear();
@@ -89,17 +150,26 @@ public class WarehouseController {
         // Frachtstücke in GUI laden
         java.util.Map<Integer, cargo.Cargo> cargosMap = gl.getCargosMap();
         java.util.Map<Integer, administration.Customer> ownersMap = gl.getCargoOwnersMap();
+        java.util.Map<Integer, String> typenMap = gl.getCargoTypesMap();
         java.util.Map<Integer, Date> inspectionMap = gl.getInspectionDatesMap();
         java.util.Map<Integer, Date> insertionMap = gl.getInsertionDatesMap();
 
         for (java.util.Map.Entry<Integer, cargo.Cargo> entry : cargosMap.entrySet()) {
             int platz = entry.getKey();
+
+            // Optionaler Typ-Filter wie im CLI (cargos [[Typ]])
+            if (typFilter != null && !typFilter.isEmpty()
+                    && !typFilter.equals(typenMap.get(platz))) {
+                continue;
+            }
+
             String kunde = ownersMap.get(platz).getName();
             Date inspektion = inspectionMap.get(platz);
             Date insertion = insertionMap.get(platz);
 
-            // Einlagerungsdauer berechnen
-            long diffInMillies = Math.abs(new Date().getTime() - insertion.getTime());
+            // Einlagerungsdauer berechnen (Differenz aktuelles Datum - Einfuegedatum)
+            long diffInMillies = insertion == null ? 0
+                    : Math.abs(new Date().getTime() - insertion.getTime());
             Duration dauer = Duration.ofMillis(diffInMillies);
 
             frachtDaten.add(new CargoViewModel(platz, kunde, inspektion, dauer));
@@ -110,7 +180,7 @@ public class WarehouseController {
 
     @FXML
     private void handleKundeAnlegen() {
-        String name = kundenNameInput.getText();
+        String name = kundenNameInput.getText().trim();
         if (!name.isEmpty()) {
             gl.onInsertCustomer(name);
             aktualisiereTabellen();
@@ -119,19 +189,51 @@ public class WarehouseController {
     }
 
     @FXML
-    private void handleFrachtEinfuegen() {
-        String kunde = frachtKundeInput.getText();
-        if (kunde.isEmpty()) return;
+    private void handleKundeLoeschen() {
+        String name = kundenNameInput.getText().trim();
+        if (!name.isEmpty()) {
+            gl.onDeleteCustomer(name);
+            aktualisiereTabellen();
+            kundenNameInput.clear();
+        }
+    }
 
-        // Nebenläufigkeit: Task läuft im Hintergrund!
+    @FXML
+    private void handleFrachtEinfuegen() {
+        final String typ = typAuswahl.getValue();
+        final String kunde = frachtKundeInput.getText().trim();
+        if (typ == null || kunde.isEmpty()) {
+            statusText.set("Fehler: Typ und Kunde angeben.");
+            return;
+        }
+
+        final BigDecimal wert;
+        final int grainSize;
+        try {
+            // Wert mit Dezimalkomma wie im CLI (z.B. 4004,50)
+            wert = new BigDecimal(wertInput.getText().trim().replace(",", "."));
+            grainSize = grainSizeInput.getText().trim().isEmpty()
+                    ? 0 : Integer.parseInt(grainSizeInput.getText().trim());
+        } catch (NumberFormatException e) {
+            statusText.set("Fehler: Ungültige Zahleneingabe.");
+            return;
+        }
+
+        // Gefahrenstoffe kommasepariert, leer = keine (wie im CLI)
+        final List<String> hazards = new ArrayList<>();
+        for (String h : hazardsInput.getText().split(",")) {
+            if (!h.trim().isEmpty()) {
+                hazards.add(h.trim());
+            }
+        }
+        final boolean fragile = fragileInput.isSelected();
+
+        // Nebenläufigkeit: das Einfügen sperrt die Oberfläche nicht, weitere
+        // Aktionen (auch ein weiteres Einfügen) sind währenddessen möglich.
         Task<Void> insertTask = new Task<Void>() {
             @Override
-            protected Void call() throws Exception {
-                // Fügen wir als Standard eine UnitisedCargo ein (für GUI Test)
-                gl.onInsertCargo("UnitisedCargo", kunde, java.math.BigDecimal.TEN, java.util.Collections.emptyList(), false, false, 0);
-
-                // Simuliere kleine Verzögerung um Nebenläufigkeit zu demonstrieren
-                Thread.sleep(400);
+            protected Void call() {
+                gl.onInsertCargo(typ, kunde, wert, hazards, fragile, false, grainSize);
                 return null;
             }
         };
@@ -139,6 +241,10 @@ public class WarehouseController {
         insertTask.setOnSucceeded(e -> {
             aktualisiereTabellen();
             frachtKundeInput.clear();
+            wertInput.clear();
+            hazardsInput.clear();
+            grainSizeInput.clear();
+            fragileInput.setSelected(false);
         });
 
         Thread thread = new Thread(insertTask);
@@ -149,24 +255,42 @@ public class WarehouseController {
     @FXML
     private void handleFrachtLoeschen() {
         try {
-            int platz = Integer.parseInt(platzInput.getText());
+            int platz = Integer.parseInt(platzInput.getText().trim());
             gl.onDeleteCargo(platz);
             aktualisiereTabellen();
             platzInput.clear();
         } catch (NumberFormatException e) {
-            System.out.println("Bitte gültige ID eingeben.");
+            statusText.set("Fehler: Bitte gültigen Lagerplatz eingeben.");
         }
     }
 
     @FXML
     private void handleInspektionSetzen() {
         try {
-            int platz = Integer.parseInt(platzInput.getText());
+            int platz = Integer.parseInt(platzInput.getText().trim());
             gl.onUpdateInspectionDate(platz);
             aktualisiereTabellen();
         } catch (NumberFormatException e) {
-            System.out.println("Bitte gültige ID eingeben.");
+            statusText.set("Fehler: Bitte gültigen Lagerplatz eingeben.");
         }
+    }
+
+    // --- Anzeigen (wie im CLI: cargos [[Typ]], hazards i/e) ---
+
+    @FXML
+    private void handleFrachtFiltern() {
+        aktualisiereTabellen(typFilterInput.getText().trim());
+    }
+
+    @FXML
+    private void handleHazardsVorhanden() {
+        // Ausgabe erfolgt ueber das Feedback-Event im Status-Label
+        gl.onReadHazards(true);
+    }
+
+    @FXML
+    private void handleHazardsFehlend() {
+        gl.onReadHazards(false);
     }
 
     // --- Drag & Drop Logik fuer Lagerplatztausch ---

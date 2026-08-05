@@ -9,6 +9,9 @@ import org.mockito.Mockito;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,6 +66,54 @@ class ConsoleClientTest {
 
         // 5. GENAU EINE ZUSICHERUNG (Assert): Prüft, ob das Feedback am Ende auf der Konsole (System.out) gedruckt wurde
         assertTrue(outputStreamCaptor.toString().trim().contains("Erfolg: Kunde Alice angelegt"));
+    }
+
+    /**
+     * Anzeigen von Kund*innen über das CLI: der Befehl 'customers' im
+     * Anzeigemodus muss das onReadCustomers-Event auslösen.
+     */
+    @Test
+    void testCustomersCommandTriggersOnReadCustomers() {
+        CargoCommandListener mockListener = Mockito.mock(CargoCommandListener.class);
+        ConsoleClient client = new ConsoleClient(mockListener);
+
+        String simulatedInput = ":r\ncustomers\n:x\n";
+        client.start(new Scanner(new ByteArrayInputStream(simulatedInput.getBytes())));
+
+        Mockito.verify(mockListener).onReadCustomers();
+    }
+
+    /**
+     * Syntax gemäß Anforderung (Beispiel aus dem Beleg): die optionalen
+     * Parameter werden in der Reihenfolge des Typ-Namens geparst
+     * (DryBulk -> grainSize, Unitised -> fragile), Wert mit Dezimalkomma.
+     */
+    @Test
+    void testCargoInsertParsesOptionalParametersInTypeOrder() {
+        CargoCommandListener mockListener = Mockito.mock(CargoCommandListener.class);
+        ConsoleClient client = new ConsoleClient(mockListener);
+
+        String simulatedInput = ":c\nDryBulkAndUnitisedCargo Alice 4004,50 flammable,toxic 10 true\n:x\n";
+        client.start(new Scanner(new ByteArrayInputStream(simulatedInput.getBytes())));
+
+        Mockito.verify(mockListener).onInsertCargo("DryBulkAndUnitisedCargo", "Alice",
+                new BigDecimal("4004.50"), Arrays.asList("flammable", "toxic"), true, false, 10);
+    }
+
+    /**
+     * Bei keiner Angabe der optionalen Parameter werden default-Werte vergeben;
+     * ein einzelnes Komma bedeutet keine Gefahrenstoffe.
+     */
+    @Test
+    void testCargoInsertVergibtDefaultWerteOhneOptionaleParameter() {
+        CargoCommandListener mockListener = Mockito.mock(CargoCommandListener.class);
+        ConsoleClient client = new ConsoleClient(mockListener);
+
+        String simulatedInput = ":c\nUnitisedCargo Alice 10000 ,\n:x\n";
+        client.start(new Scanner(new ByteArrayInputStream(simulatedInput.getBytes())));
+
+        Mockito.verify(mockListener).onInsertCargo("UnitisedCargo", "Alice",
+                new BigDecimal("10000"), Collections.emptyList(), false, false, 0);
     }
 
     /**

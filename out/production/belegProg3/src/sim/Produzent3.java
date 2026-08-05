@@ -63,6 +63,8 @@ public class Produzent3 implements Runnable {
                 }
 
                 // Frachtstück einfügen
+                System.out.println(Thread.currentThread().getName()
+                        + ": versuche " + data.type + " für '" + data.customerName + "' einzufügen");
                 gl.onInsertCargo(
                         data.type,
                         data.customerName,

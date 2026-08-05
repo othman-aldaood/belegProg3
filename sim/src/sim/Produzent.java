@@ -41,6 +41,8 @@ public class Produzent implements Runnable {
         while (!Thread.currentThread().isInterrupted()) {
             CargoData data = generator.generate();
 
+            System.out.println(Thread.currentThread().getName()
+                    + ": versuche " + data.type + " für '" + data.customerName + "' einzufügen");
             gl.onInsertCargo(
                     data.type,
                     data.customerName,

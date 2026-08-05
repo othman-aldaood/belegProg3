@@ -3,6 +3,7 @@ package cli;
 import events.CapacityObserver;
 import events.CargoCommandListener;
 import events.GLFeedbackListener;
+import events.HazardObserver;
 import events.PersistenceCommandListener;
 
 import java.math.BigDecimal;
@@ -15,7 +16,7 @@ import java.util.Scanner;
  * Implementiert die Beobachter- und Feedback-Schnittstellen strikt nach Belegvorgaben.
  * Keine Menüführung, zustandsbasiert.
  */
-public class ConsoleClient implements CapacityObserver, GLFeedbackListener {
+public class ConsoleClient implements CapacityObserver, HazardObserver, GLFeedbackListener {
     private CargoCommandListener listener;
     private PersistenceCommandListener persistenceListener;
     private String currentMode = "";
@@ -177,8 +178,16 @@ public class ConsoleClient implements CapacityObserver, GLFeedbackListener {
     }
 
     @Override
-    public void onCapacityWarning(String message) {
-        System.out.println(message);
+    public void onCapacityWarning() {
+        // Der Beobachter erhält nur das Signal; der Text entsteht in der UI.
+        System.out.println("Achtung! Lagerkapazität hat 90% erreicht.");
+    }
+
+    @Override
+    public void onHazardsChanged() {
+        // Signal erhalten -> aktuellen Zustand selbst bei der GL abfragen (pull).
+        System.out.println("Die vorhandenen Gefahrenstoffe haben sich geändert:");
+        listener.onReadHazards(true);
     }
 
     @Override

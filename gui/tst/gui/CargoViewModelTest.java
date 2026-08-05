@@ -27,9 +27,15 @@ class CargoViewModelTest {
     }
 
     @Test
-    void testEinlagerungsDauerPropertyGibtKorrektenWertZurueck() {
+    void testEinlagerungsDauerPropertyGibtSekundenZurueck() {
         Duration testDauer = Duration.ofDays(5);
         CargoViewModel viewModel = new CargoViewModel(10, "Alice", new Date(), testDauer);
-        assertEquals(testDauer, viewModel.einlagerungsDauerProperty().get());
+        assertEquals(432000L, viewModel.einlagerungsDauerProperty().get());
+    }
+
+    @Test
+    void testEinlagerungsDauerPropertyLiefertNullBeiFehlenderDauer() {
+        CargoViewModel viewModel = new CargoViewModel(10, "Alice", new Date(), null);
+        assertEquals(0L, viewModel.einlagerungsDauerProperty().get());
     }
 }
