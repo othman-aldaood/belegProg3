@@ -2,6 +2,7 @@ package gui;
 
 import domainLogic.WarehouseManager;
 import events.GLFeedbackListener;
+import events.PersistenceCommandListener;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -77,7 +78,12 @@ public class WarehouseController implements GLFeedbackListener {
     @FXML
     private TextField typFilterInput;
     @FXML
+    private ComboBox<String> technologieAuswahl;
+    @FXML
     private Label statusLabel;
+
+    // Handler fuer die Persistenz; wird im setup eingehangen (Technologie-Auswahl dort)
+    private PersistenceCommandListener persistenceListener;
 
     // Listen fuer automatische Aktualisierung
     private final ObservableList<CustomerViewModel> kundenDaten = FXCollections.observableArrayList();
@@ -105,6 +111,10 @@ public class WarehouseController implements GLFeedbackListener {
                 "DryBulkCargo", "UnitisedCargo", "DryBulkAndUnitisedCargo"));
         typAuswahl.getSelectionModel().selectFirst();
 
+        // Die Anwender*innen waehlen die Technologie der Persistierung
+        technologieAuswahl.setItems(FXCollections.observableArrayList("JOS", "JBP"));
+        technologieAuswahl.getSelectionModel().selectFirst();
+
         // Explizites data binding: das Label folgt der Status-Property
         statusLabel.textProperty().bind(statusText);
 
@@ -116,6 +126,26 @@ public class WarehouseController implements GLFeedbackListener {
      */
     public void setWarehouseManager(WarehouseManager manager) {
         this.gl = manager;
+        aktualisiereTabellen();
+    }
+
+    /**
+     * Setzt den Handler fuer das Speichern und Laden.
+     * Wird im setup (GUIMain) eingehangen; ohne Handler ist die Persistenz
+     * in der Oberflaeche deaktiviert. Die Oberflaeche kennt nur das
+     * Event-Interface, nicht die Persistenzschicht.
+     *
+     * @param persistenceListener der Handler oder null
+     */
+    public void setPersistenceListener(PersistenceCommandListener persistenceListener) {
+        this.persistenceListener = persistenceListener;
+    }
+
+    /**
+     * Aktualisiert die Anzeige nach einem Vorgang ausserhalb der Oberflaeche,
+     * z.B. nach dem Laden eines gespeicherten Zustands.
+     */
+    public void aktualisiereAnzeige() {
         aktualisiereTabellen();
     }
 
@@ -291,6 +321,26 @@ public class WarehouseController implements GLFeedbackListener {
     @FXML
     private void handleHazardsFehlend() {
         gl.onReadHazards(false);
+    }
+
+    // --- Persistenz (Speichern und Laden mit waehlbarer Technologie) ---
+
+    @FXML
+    private void handleSpeichern() {
+        if (this.persistenceListener == null) {
+            statusText.set("Fehler: Persistenz ist nicht verfügbar.");
+            return;
+        }
+        this.persistenceListener.onSave(technologieAuswahl.getValue());
+    }
+
+    @FXML
+    private void handleLaden() {
+        if (this.persistenceListener == null) {
+            statusText.set("Fehler: Persistenz ist nicht verfügbar.");
+            return;
+        }
+        this.persistenceListener.onLoad(technologieAuswahl.getValue());
     }
 
     // --- Drag & Drop Logik fuer Lagerplatztausch ---

@@ -85,6 +85,37 @@ public class WarehouseManagerTest {
         assertTrue(manager.getAllCustomers().isEmpty());
     }
 
+    @Test
+    public void serialisierungErhaeltDenZustand() throws Exception {
+        // Die Geschaeftslogik ist serialisierbar; geprueft wird ohne
+        // Dateisystemzugriff ueber Streams im Speicher.
+        WarehouseManager manager = new WarehouseManager(5);
+        manager.onInsertCustomer("Alice");
+        java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+        new java.io.ObjectOutputStream(bytes).writeObject(manager);
+
+        WarehouseManager geladen = (WarehouseManager) new java.io.ObjectInputStream(
+                new java.io.ByteArrayInputStream(bytes.toByteArray())).readObject();
+
+        assertEquals(1, geladen.getAllCustomers().size());
+    }
+
+    @Test
+    public void serialisierteGeschaeftslogikNimmtNeueBeobachterAn() throws Exception {
+        // Die Beobachterlisten sind transient und werden beim Laden neu angelegt.
+        WarehouseManager manager = new WarehouseManager(5);
+        java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+        new java.io.ObjectOutputStream(bytes).writeObject(manager);
+        WarehouseManager geladen = (WarehouseManager) new java.io.ObjectInputStream(
+                new java.io.ByteArrayInputStream(bytes.toByteArray())).readObject();
+        ChangeObserver observer = Mockito.mock(ChangeObserver.class);
+
+        geladen.addChangeObserver(observer);
+        geladen.onInsertCustomer("Alice");
+
+        Mockito.verify(observer).onChanged();
+    }
+
     // =========================================================================
     // --- Kundinnen anlegen ---
     // =========================================================================
@@ -198,12 +229,55 @@ public class WarehouseManagerTest {
     }
 
     @Test
+    public void onInsertCargoOhneRegistrierteObserverWarntNicht() {
+        // Kapazitaetsgrenze erreicht, aber kein Beobachter registriert:
+        // die Benachrichtigung wird uebersprungen.
+        Cargo cargo = new DryBulkCargoImpl(new CustomerImpl("Alice"), BigDecimal.ONE, null, 5);
+        Map<Integer, Cargo> cargos = new HashMap<>();
+        cargos.put(1, cargo);
+        cargos.put(2, cargo);
+        cargos.put(3, cargo);
+        cargos.put(4, cargo);
+        cargos.put(5, cargo);
+        cargos.put(6, cargo);
+        cargos.put(7, cargo);
+        cargos.put(8, cargo);
+        cargos.put(9, cargo);
+        WarehouseManager manager = new WarehouseManager(10, 10, null, cargos, null, null, null, null);
+
+        manager.onInsertCargo("DryBulkCargo", "Nobody", BigDecimal.ONE, null, false, false, 5);
+
+        assertEquals(9, manager.getCurrentSize());
+    }
+
+    @Test
     public void onInsertCargoMeldetFehlerBeiUnbekannterKundin() {
         WarehouseManager manager = new WarehouseManager(5);
         GLFeedbackListener feedback = Mockito.mock(GLFeedbackListener.class);
         manager.setFeedbackListener(feedback);
         manager.onInsertCargo("DryBulkCargo", "Bob", BigDecimal.ONE, null, false, false, 5);
         Mockito.verify(feedback).onFeedbackReceived("Fehler: Kunde 'Bob' nicht gefunden.");
+    }
+
+    @Test
+    public void onInsertCargoMeldetFehlerWennNurAndereKundinnenExistieren() {
+        // Die Suche nach der Kundin durchlaeuft vorhandene Eintraege ohne Treffer.
+        WarehouseManager manager = new WarehouseManager(5);
+        GLFeedbackListener feedback = Mockito.mock(GLFeedbackListener.class);
+        manager.setFeedbackListener(feedback);
+        manager.onInsertCustomer("Alice");
+        manager.onInsertCargo("DryBulkCargo", "Bob", BigDecimal.ONE, null, false, false, 5);
+        Mockito.verify(feedback).onFeedbackReceived("Fehler: Kunde 'Bob' nicht gefunden.");
+    }
+
+    @Test
+    public void onInsertCargoMitLeererGefahrenstoffListeLegtCargoOhneGefahrenstoffeAn() {
+        // Leere (nicht null) Sammlung: die Schleife wird nicht durchlaufen.
+        WarehouseManager manager = new WarehouseManager(5);
+        manager.onInsertCustomer("Alice");
+        manager.onInsertCargo("DryBulkCargo", "Alice", BigDecimal.ONE,
+                Collections.<String>emptyList(), false, false, 5);
+        assertTrue(manager.getAllCargos().iterator().next().getHazards().isEmpty());
     }
 
     @Test
@@ -354,6 +428,24 @@ public class WarehouseManagerTest {
     }
 
     @Test
+    public void onReadCustomersOhneKundinnenListetNichts() {
+        WarehouseManager manager = new WarehouseManager(5);
+        GLFeedbackListener feedback = Mockito.mock(GLFeedbackListener.class);
+        manager.setFeedbackListener(feedback);
+        manager.onReadCustomers();
+        Mockito.verify(feedback).onFeedbackReceived("Kunden:");
+    }
+
+    @Test
+    public void onReadCargosOhneFrachtstueckeListetNichts() {
+        WarehouseManager manager = new WarehouseManager(5);
+        GLFeedbackListener feedback = Mockito.mock(GLFeedbackListener.class);
+        manager.setFeedbackListener(feedback);
+        manager.onReadCargos(null);
+        Mockito.verify(feedback).onFeedbackReceived("Frachtstücke:");
+    }
+
+    @Test
     public void onReadCargosOhneFilterListetAlle() {
         Map<Integer, Cargo> cargos = new HashMap<>();
         cargos.put(1, new DryBulkCargoImpl(new CustomerImpl("Alice"), BigDecimal.ONE, null, 5));
@@ -394,6 +486,19 @@ public class WarehouseManagerTest {
         manager.setFeedbackListener(feedback);
         manager.onReadCargos("");
         Mockito.verify(feedback).onFeedbackReceived(Mockito.contains("Platz 1"));
+    }
+
+    @Test
+    public void onReadCargosBerechnetDieLagerdauerAusDemEinfuegedatum() {
+        // Regulaer eingefuegtes Frachtstueck: das Einfuegedatum ist gesetzt,
+        // die Lagerdauer wird daraus berechnet.
+        WarehouseManager manager = new WarehouseManager(5);
+        GLFeedbackListener feedback = Mockito.mock(GLFeedbackListener.class);
+        manager.setFeedbackListener(feedback);
+        manager.onInsertCustomer("Alice");
+        manager.onInsertCargo("DryBulkCargo", "Alice", BigDecimal.ONE, null, false, false, 5);
+        manager.onReadCargos(null);
+        Mockito.verify(feedback).onFeedbackReceived(Mockito.contains("Lagerdauer:"));
     }
 
     @Test
@@ -506,6 +611,19 @@ public class WarehouseManagerTest {
         manager.onInsertCargo("DryBulkCargo", "Alice", BigDecimal.ONE, null, false, false, 5);
         manager.onDeleteCustomer("Alice");
         assertTrue(manager.isEmpty());
+    }
+
+    @Test
+    public void onDeleteCustomerLaesstFrachtstueckeAndererKundinnenUnberuehrt() {
+        // Beim Loeschen werden nur die Frachtstuecke der betroffenen Kundin
+        // entfernt, die Zuordnung der uebrigen bleibt bestehen.
+        WarehouseManager manager = new WarehouseManager(5);
+        manager.onInsertCustomer("Alice");
+        manager.onInsertCustomer("Bob");
+        manager.onInsertCargo("DryBulkCargo", "Alice", BigDecimal.ONE, null, false, false, 5);
+        manager.onInsertCargo("DryBulkCargo", "Bob", BigDecimal.ONE, null, false, false, 5);
+        manager.onDeleteCustomer("Alice");
+        assertEquals(1, manager.getCurrentSize());
     }
 
     @Test
@@ -765,6 +883,36 @@ public class WarehouseManagerTest {
         manager.onInsertCargo("DryBulkCargo", "Alice", BigDecimal.ONE, null, false, false, 5);
         manager.getCargosMap().clear();
         assertEquals(1, manager.getCargosMap().size());
+    }
+
+    @Test
+    public void getAllCargosLiefertLeereSammlungBeiLeeremLager() {
+        WarehouseManager manager = new WarehouseManager(5);
+        assertTrue(manager.getAllCargos().isEmpty());
+    }
+
+    @Test
+    public void getCargosMapLiefertLeereMapBeiLeeremLager() {
+        WarehouseManager manager = new WarehouseManager(5);
+        assertTrue(manager.getCargosMap().isEmpty());
+    }
+
+    @Test
+    public void getCargoOwnersMapLiefertLeereMapBeiLeeremLager() {
+        WarehouseManager manager = new WarehouseManager(5);
+        assertTrue(manager.getCargoOwnersMap().isEmpty());
+    }
+
+    @Test
+    public void getInspectionDatesMapLiefertLeereMapBeiLeeremLager() {
+        WarehouseManager manager = new WarehouseManager(5);
+        assertTrue(manager.getInspectionDatesMap().isEmpty());
+    }
+
+    @Test
+    public void getInsertionDatesMapLiefertLeereMapBeiLeeremLager() {
+        WarehouseManager manager = new WarehouseManager(5);
+        assertTrue(manager.getInsertionDatesMap().isEmpty());
     }
 
     @Test

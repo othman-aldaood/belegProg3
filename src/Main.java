@@ -37,7 +37,6 @@ public class Main {
             }
             try {
                 capacity = Integer.parseInt(args[0]);
-                System.out.println("Kapazität aus Argumenten gesetzt auf: " + capacity);
             } catch (NumberFormatException e) {
                 // ungültiges Argument -> Standardkapazität
             }
@@ -56,8 +55,7 @@ public class Main {
 
         // 3. Log optional einhängen: der protokollierende Stellvertreter wird
         // zwischen Oberfläche und Geschäftslogik gesetzt, der Beobachter
-        // protokolliert die Zustandsänderungen. Die bestehende Implementierung
-        // bleibt davon unberührt, die Konfiguration passiert nur hier im setup.
+        // protokolliert die Zustandsänderungen.
         LogWriter logWriter = null;
         LogTexts logTexte = null;
         if (sprache != null) {
@@ -103,10 +101,9 @@ public class Main {
                 try {
                     WarehouseManager loaded = createStrategy(technology).load();
                     currentManager[0] = loaded;
-                    // Die Beobachter gehören nicht zum Zustand der GL; sie müssen
+                    // Die Beobachter gehören nicht zum Zustand der GL und müssen
                     // laut Anforderung nach dem Laden nicht wieder eingehangen
-                    // werden. Hier geschieht es dennoch im setup, damit die
-                    // Anwendung nach dem Laden unverändert weiterarbeitet.
+                    // werden; sie werden hier im setup erneut registriert.
                     loaded.setFeedbackListener(cli);
                     loaded.addCapacityObserver(cli);
                     loaded.addHazardObserver(cli);
@@ -123,8 +120,9 @@ public class Main {
             }
         });
 
-        // 5. CLI starten (keine Menüführung laut Anforderung)
-        System.out.println("Frachtverwaltung gestartet (:x beendet).");
+        // 7. CLI starten. Die Befehlsübersicht wird einmalig ausgegeben.
+        System.out.println("Frachtverwaltung gestartet (Kapazität: " + capacity + ").");
+        printBefehlsuebersicht();
         Scanner scanner = new Scanner(System.in);
         cli.start(scanner);
         scanner.close();
@@ -156,6 +154,22 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         cli.start(scanner);
         scanner.close();
+    }
+
+    /**
+     * Gibt einmalig eine Übersicht der verfügbaren Befehle aus.
+     */
+    private static void printBefehlsuebersicht() {
+        System.out.println("Modi: :c einfuegen | :r anzeigen | :u aendern | :d loeschen | :p persistenz | :x beenden");
+        System.out.println(":c  [K-Name]");
+        System.out.println(":c  [Fracht-Typ] [K-Name] [Wert] [Gefahrenstoffe] [[optionale Parameter]]");
+        System.out.println("    Typen: DryBulkCargo [GrainSize] | UnitisedCargo [Fragile] | DryBulkAndUnitisedCargo [GrainSize] [Fragile]");
+        System.out.println("    Gefahrenstoffe: explosive, flammable, toxic, radioactive (kommasepariert, einzelnes Komma fuer keine)");
+        System.out.println("    Beispiel: DryBulkAndUnitisedCargo Alice 4004,50 flammable,toxic 10 true");
+        System.out.println(":r  customers | cargos [[Typ]] | hazards i | hazards e");
+        System.out.println(":u  [Lagerplatz]");
+        System.out.println(":d  [K-Name] | [Lagerplatz]");
+        System.out.println(":p  save [JOS|JBP] | load [JOS|JBP]");
     }
 
     /**

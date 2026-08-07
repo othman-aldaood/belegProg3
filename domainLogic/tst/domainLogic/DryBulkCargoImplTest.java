@@ -161,4 +161,39 @@ public class DryBulkCargoImplTest {
         DryBulkCargoImpl cargo = new DryBulkCargoImpl();
         assertNull(cargo.copy(7).getOwner());
     }
+
+    @Test
+    public void copyUebernimmtDasEinfuegedatum() {
+        DryBulkCargoImpl cargo = new DryBulkCargoImpl();
+        cargo.setInsertionDate(new Date(1000L));
+        assertEquals(new Date(1000L), cargo.copy(7).getInsertionDate());
+    }
+
+    @Test
+    public void copyOhneEinfuegedatumLiefertNull() {
+        DryBulkCargoImpl cargo = new DryBulkCargoImpl();
+        cargo.setInsertionDate(null);
+        assertNull(cargo.copy(7).getInsertionDate());
+    }
+
+    @Test
+    public void copyUebernimmtDasInspektionsdatum() {
+        DryBulkCargoImpl cargo = new DryBulkCargoImpl();
+        cargo.setLastInspectionDate(new Date(2000L));
+        assertEquals(new Date(2000L), cargo.copy(7).getLastInspectionDate());
+    }
+
+    @Test
+    public void copyOhneInspektionsdatumLiefertNull() {
+        DryBulkCargoImpl cargo = new DryBulkCargoImpl();
+        assertNull(cargo.copy(7).getLastInspectionDate());
+    }
+
+    @Test
+    public void copyLiefertUnabhaengigesEinfuegedatum() {
+        DryBulkCargoImpl cargo = new DryBulkCargoImpl();
+        cargo.setInsertionDate(new Date(1000L));
+        cargo.copy(7).getInsertionDate().setTime(5L);
+        assertEquals(new Date(1000L), cargo.getInsertionDate());
+    }
 }

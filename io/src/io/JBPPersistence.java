@@ -28,9 +28,9 @@ public class JBPPersistence implements PersistenceStrategy {
     public void save(WarehouseManager manager, OutputStream out) throws Exception {
         try (XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(out))) {
 
-            // WICHTIG (Folie 58): Fix für BigDecimal!
-            // Da BigDecimal keinen Standardkonstruktor () hat, stürzt der XMLEncoder ab.
-            // Wir sagen ihm hier, dass er den String-Konstruktor: new BigDecimal(String) nutzen soll.
+            // Persistence-Delegate für BigDecimal (Folie 58): BigDecimal besitzt
+            // keinen parameterlosen Konstruktor, den der XMLEncoder voraussetzt.
+            // Der Delegate weist ihn auf den String-Konstruktor new BigDecimal(String) hin.
             encoder.setPersistenceDelegate(BigDecimal.class, new DefaultPersistenceDelegate() {
                 @Override
                 protected Expression instantiate(Object oldInstance, Encoder out) {

@@ -66,6 +66,12 @@
             <Button text="Nicht vorhandene Gefahrenstoffe" onAction="#handleHazardsFehlend" />
         </HBox>
 
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <ComboBox fx:id="technologieAuswahl" promptText="Technologie" />
+            <Button text="Speichern" onAction="#handleSpeichern" />
+            <Button text="Laden" onAction="#handleLaden" />
+        </HBox>
+
         <Label fx:id="statusLabel" style="-fx-text-fill: #444444;" wrapText="true"/>
     </VBox>
 </VBox>

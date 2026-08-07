@@ -48,7 +48,7 @@ public class AlternativeMain {
             @Override
             public void onDeleteCargo(int storageLocation) { gl.onDeleteCargo(storageLocation); }
 
-            // --- Deaktivierte Funktionen (laut Anforderung dokumentiert) ---
+            // Deaktivierte Funktionen
             @Override
             public void onDeleteCustomer(String customerName) {
                 System.out.println("Löschen von Kund*innen ist in dieser alternativen Version DEAKTIVIERT.");
@@ -62,17 +62,33 @@ public class AlternativeMain {
 
         ConsoleClient cli = new ConsoleClient(restrictedListener);
 
-        // NUR EIN BEOBACHTER AKTIV: nur die Kapazitätswarnung wird registriert.
-        // Der Gefahrenstoff-Beobachter wird weggelassen (sein pull würde das
-        // deaktivierte Auflisten der Gefahrenstoffe verwenden).
+        // Nur ein Beobachter aktiv: die Kapazitätswarnung. Der Gefahrenstoff-
+        // Beobachter entfällt, da sein pull das deaktivierte Auflisten der
+        // Gefahrenstoffe verwenden würde.
         gl.setFeedbackListener(cli);
         gl.addCapacityObserver(cli);
-        // gl.addHazardObserver(cli); // <--- Abgeschaltet für die Alternative!
+        // gl.addHazardObserver(cli); // in dieser Konfiguration nicht registriert
 
-        System.out.println("ALTERNATIVE Frachtverwaltung gestartet"
-                + " (deaktiviert: Löschen von Kund*innen, Auflisten der Gefahrenstoffe).");
+        System.out.println("ALTERNATIVE Frachtverwaltung gestartet (Kapazität: " + capacity + ").");
+        System.out.println("Deaktiviert: Löschen von Kund*innen, Auflisten der Gefahrenstoffe.");
+        printBefehlsuebersicht();
         Scanner scanner = new Scanner(System.in);
         cli.start(scanner);
         scanner.close();
+    }
+
+    /**
+     * Gibt einmalig eine Übersicht der verfügbaren Befehle aus.
+     * Die deaktivierten Befehle sind gekennzeichnet.
+     */
+    private static void printBefehlsuebersicht() {
+        System.out.println("Modi: :c einfuegen | :r anzeigen | :u aendern | :d loeschen | :x beenden");
+        System.out.println(":c  [K-Name]");
+        System.out.println(":c  [Fracht-Typ] [K-Name] [Wert] [Gefahrenstoffe] [[optionale Parameter]]");
+        System.out.println("    Typen: DryBulkCargo [GrainSize] | UnitisedCargo [Fragile] | DryBulkAndUnitisedCargo [GrainSize] [Fragile]");
+        System.out.println("    Gefahrenstoffe: explosive, flammable, toxic, radioactive (kommasepariert, einzelnes Komma fuer keine)");
+        System.out.println(":r  customers | cargos [[Typ]] | hazards i bzw. hazards e (deaktiviert)");
+        System.out.println(":u  [Lagerplatz]");
+        System.out.println(":d  [Lagerplatz] | [K-Name] (deaktiviert)");
     }
 }

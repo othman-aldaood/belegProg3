@@ -150,4 +150,37 @@ public class UnitisedCargoImplTest {
         cargo.copy(7).getOwner().setName("Hacked");
         assertEquals("Alice", cargo.getOwner().getName());
     }
+
+    @Test
+    public void copyOhneEigentuemerinLiefertNullEigentuemerin() {
+        UnitisedCargoImpl cargo = new UnitisedCargoImpl();
+        assertNull(cargo.copy(7).getOwner());
+    }
+
+    @Test
+    public void copyUebernimmtDasEinfuegedatum() {
+        UnitisedCargoImpl cargo = new UnitisedCargoImpl();
+        cargo.setInsertionDate(new Date(1000L));
+        assertEquals(new Date(1000L), cargo.copy(7).getInsertionDate());
+    }
+
+    @Test
+    public void copyOhneEinfuegedatumLiefertNull() {
+        UnitisedCargoImpl cargo = new UnitisedCargoImpl();
+        cargo.setInsertionDate(null);
+        assertNull(cargo.copy(7).getInsertionDate());
+    }
+
+    @Test
+    public void copyUebernimmtDasInspektionsdatum() {
+        UnitisedCargoImpl cargo = new UnitisedCargoImpl();
+        cargo.setLastInspectionDate(new Date(2000L));
+        assertEquals(new Date(2000L), cargo.copy(7).getLastInspectionDate());
+    }
+
+    @Test
+    public void copyOhneInspektionsdatumLiefertNull() {
+        UnitisedCargoImpl cargo = new UnitisedCargoImpl();
+        assertNull(cargo.copy(7).getLastInspectionDate());
+    }
 }

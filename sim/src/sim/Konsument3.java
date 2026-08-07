@@ -77,7 +77,7 @@ public class Konsument3 implements Runnable {
                 monitor.notifyAll(); // Produzenten benachrichtigen
             }
 
-            // Für die Abgabe MUSS Thread.sleep auf 0 gesetzt sein!
+            // Für die Abgabe ist Thread.sleep auf 0 gesetzt.
             try {
                 Thread.sleep(0);
             } catch (InterruptedException e) {

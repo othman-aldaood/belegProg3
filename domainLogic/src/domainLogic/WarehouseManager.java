@@ -33,7 +33,8 @@ public class WarehouseManager implements CargoCommandListener, Serializable {
     private Map<Integer, Date> insertionDates = new HashMap<>();
     private Map<Integer, Date> inspectionDates = new HashMap<>();
 
-    // Listener MÜSSEN transient sein, damit JOS nicht abstürzt!
+    // Die Listener sind transient: sie gehören nicht zum Zustand der GL und
+    // sind nicht serialisierbar.
     // Beobachter werden als Listen verwaltet (Observer-Pattern mit An-/Abmeldung).
     private transient GLFeedbackListener feedbackListener;
     private transient List<CapacityObserver> capacityObservers = new ArrayList<>();
@@ -86,8 +87,8 @@ public class WarehouseManager implements CargoCommandListener, Serializable {
 
     // =========================================================================
     // --- Zustandsabfragen ---
-    // Alle Abfragen liefern ausschließlich defensive Kopien (Kapselung!).
-    // Es gibt bewusst KEINE öffentlichen Setter: der Zustand ist nur über die
+    // Alle Abfragen liefern ausschließlich defensive Kopien (Kapselung).
+    // Es gibt keine öffentlichen Setter: der Zustand ist nur über die
     // Kommandos bzw. den Wiederherstellungs-Konstruktor veränderbar.
     // =========================================================================
 
@@ -191,32 +192,28 @@ public class WarehouseManager implements CargoCommandListener, Serializable {
         }
 
         Cargo newCargo;
-        try {
-            if ("DryBulkCargo".equals(type)) {
-                newCargo = new DryBulkCargoImpl(owner, value, hazardEnums, grainSize);
-            } else if ("UnitisedCargo".equals(type)) {
-                newCargo = new UnitisedCargoImpl(owner, value, hazardEnums, isFragile);
-            } else if ("DryBulkAndUnitisedCargo".equals(type)) {
-                newCargo = new DryBulkAndUnitisedCargoImpl(owner, value, hazardEnums, grainSize, isFragile);
-            } else {
-                sendFeedback("Fehler: Unbekannter Frachttyp.");
-                return;
-            }
-
-            Set<Hazard> hazardsBefore = presentHazards();
-            int currentLocation = this.nextLocation++;
-            this.cargos.put(currentLocation, newCargo);
-            this.cargoOwners.put(currentLocation, owner);
-            this.cargoTypes.put(currentLocation, type);
-            this.insertionDates.put(currentLocation, new Date());
-            this.inspectionDates.put(currentLocation, new Date());
-
-            sendFeedback("Erfolg: " + type + " auf Lagerplatz " + currentLocation + " eingefügt.");
-            notifyChange();
-            notifyHazardChange(hazardsBefore);
-        } catch (Exception e) {
-            sendFeedback("Fehler: " + e.getMessage());
+        if ("DryBulkCargo".equals(type)) {
+            newCargo = new DryBulkCargoImpl(owner, value, hazardEnums, grainSize);
+        } else if ("UnitisedCargo".equals(type)) {
+            newCargo = new UnitisedCargoImpl(owner, value, hazardEnums, isFragile);
+        } else if ("DryBulkAndUnitisedCargo".equals(type)) {
+            newCargo = new DryBulkAndUnitisedCargoImpl(owner, value, hazardEnums, grainSize, isFragile);
+        } else {
+            sendFeedback("Fehler: Unbekannter Frachttyp.");
+            return;
         }
+
+        Set<Hazard> hazardsBefore = presentHazards();
+        int currentLocation = this.nextLocation++;
+        this.cargos.put(currentLocation, newCargo);
+        this.cargoOwners.put(currentLocation, owner);
+        this.cargoTypes.put(currentLocation, type);
+        this.insertionDates.put(currentLocation, new Date());
+        this.inspectionDates.put(currentLocation, new Date());
+
+        sendFeedback("Erfolg: " + type + " auf Lagerplatz " + currentLocation + " eingefügt.");
+        notifyChange();
+        notifyHazardChange(hazardsBefore);
     }
 
     @Override

@@ -51,7 +51,7 @@ class ConsoleClientTest {
         CargoCommandListener mockListener = Mockito.mock(CargoCommandListener.class);
         ConsoleClient client = new ConsoleClient(mockListener);
 
-        // 2. Mockito anweisen: Wenn onInsertCustomer aufgerufen wird, sende sofort ein Feedback an den Client zurück!
+        // 2. Der Mock sendet beim Aufruf von onInsertCustomer ein Feedback an den Client zurück.
         Mockito.doAnswer(invocation -> {
             client.onFeedbackReceived("Erfolg: Kunde Alice angelegt");
             return null; // void Methode

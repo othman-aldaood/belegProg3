@@ -165,4 +165,45 @@ public class DryBulkAndUnitisedCargoImplTest {
         DryBulkAndUnitisedCargoImpl copy = cargo.copy(7);
         assertTrue(copy.isFragile());
     }
+
+    @Test
+    public void copyKopiertEigentuemerinUnabhaengig() {
+        DryBulkAndUnitisedCargoImpl cargo = new DryBulkAndUnitisedCargoImpl(new CustomerImpl("Alice"),
+                BigDecimal.ONE, null, 5, true);
+        cargo.copy(7).getOwner().setName("Hacked");
+        assertEquals("Alice", cargo.getOwner().getName());
+    }
+
+    @Test
+    public void copyOhneEigentuemerinLiefertNullEigentuemerin() {
+        DryBulkAndUnitisedCargoImpl cargo = new DryBulkAndUnitisedCargoImpl();
+        assertNull(cargo.copy(7).getOwner());
+    }
+
+    @Test
+    public void copyUebernimmtDasEinfuegedatum() {
+        DryBulkAndUnitisedCargoImpl cargo = new DryBulkAndUnitisedCargoImpl();
+        cargo.setInsertionDate(new Date(1000L));
+        assertEquals(new Date(1000L), cargo.copy(7).getInsertionDate());
+    }
+
+    @Test
+    public void copyOhneEinfuegedatumLiefertNull() {
+        DryBulkAndUnitisedCargoImpl cargo = new DryBulkAndUnitisedCargoImpl();
+        cargo.setInsertionDate(null);
+        assertNull(cargo.copy(7).getInsertionDate());
+    }
+
+    @Test
+    public void copyUebernimmtDasInspektionsdatum() {
+        DryBulkAndUnitisedCargoImpl cargo = new DryBulkAndUnitisedCargoImpl();
+        cargo.setLastInspectionDate(new Date(2000L));
+        assertEquals(new Date(2000L), cargo.copy(7).getLastInspectionDate());
+    }
+
+    @Test
+    public void copyOhneInspektionsdatumLiefertNull() {
+        DryBulkAndUnitisedCargoImpl cargo = new DryBulkAndUnitisedCargoImpl();
+        assertNull(cargo.copy(7).getLastInspectionDate());
+    }
 }
